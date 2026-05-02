@@ -1,0 +1,13 @@
+<Project>
+	<PropertyGroup>
+		<LangVersion>latest</LangVersion>
+		<Nullable>enable</Nullable>
+		<ImplicitUsings>enable</ImplicitUsings>
+		<RootNamespace>illusion</RootNamespace>
+		<Version>2.1.0</Version>
+		<Authors>Toothless</Authors>
+		<Company>Illusionary-AI Team</Company>
+		<OutputPath>$(MSBuildThisFileDirectory)artifacts\bin\$(MSBuildProjectName)\$(Configuration)\</OutputPath>
+		<BaseOutputPath>$(MSBuildThisFileDirectory)artifacts\obj\$(MSBuildProjectName)\</BaseOutputPath>
+	</PropertyGroup>
+</Project>
