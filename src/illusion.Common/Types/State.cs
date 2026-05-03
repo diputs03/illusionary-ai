@@ -15,7 +15,7 @@ public class State
     }
 
     public StatePhase Phase { get; private set; }
-    public IReadOnlyDictionary<string, Object> Objects { get; }
+    public IReadOnlyDictionary<string, Entity> Objects { get; }
     public IReadOnlyList<Expression> Axioms { get; }
     public IReadOnlyList<Expression> VerifiedConclusions { get; private set; }
     public DateTime CreatedAt { get; }
@@ -24,7 +24,7 @@ public class State
     public State(IEnumerable<Expression> axioms)
     {
         Phase = StatePhase.Initial;
-        Objects = new Dictionary<string, Object>().AsReadOnly();
+        Objects = new Dictionary<string, Entity>().AsReadOnly();
         Axioms = axioms?.ToList().AsReadOnly() ?? throw new ArgumentNullException(nameof(axioms));
         VerifiedConclusions = new List<Expression>().AsReadOnly();
         CreatedAt = DateTime.UtcNow;

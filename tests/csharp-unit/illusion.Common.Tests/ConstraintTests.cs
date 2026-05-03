@@ -9,7 +9,7 @@ public class ConstraintTests
     public void Constructor_WithValidParameters_CreatesInstance()
     {
         // Arrange
-        var obj = new Types.Object("obj-001", "TestObject");
+        var obj = new Entity("obj-001", "TestObject");
         var expr = new Expression("IsValid", obj);
 
         // Act
@@ -34,7 +34,7 @@ public class ConstraintTests
     public void Verify_WithNullState_ThrowsArgumentNullException()
     {
         // Arrange
-        var obj = new Types.Object("obj-001", "TestObject");
+        var obj = new Entity("obj-001", "TestObject");
         var expr = new Expression("IsValid", obj);
         var constraint = new Constraint(Constraint.ConstraintType.Precondition, expr);
 

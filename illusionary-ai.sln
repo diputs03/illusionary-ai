@@ -7,12 +7,16 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Solution Items", "Solution 
 	ProjectSection(SolutionItems) = preProject
 		Directory.Build.props = Directory.Build.props
 		Directory.Packages.props = Directory.Packages.props
+		config\ggtp.yaml = config\ggtp.yaml
 		config\system.yaml = config\system.yaml
+		config\upp.yaml = config\upp.yaml
 	EndProjectSection
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "illusion.Common", "src\illusion.Common\illusion.Common.csproj", "{1054C9D5-4F2A-443C-BE80-EAFAE6271835}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "illusion.Common.Tests", "tests\csharp-unit\illusion.Common.Tests\illusion.Common.Tests.csproj", "{273B13E4-6B69-402E-BD8F-327424582E25}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "illusion.CoreLogic", "src\illusion.CoreLogic\illusion.CoreLogic.csproj", "{CC5B1D38-2905-4190-958D-39C9228A4D34}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -28,6 +32,10 @@ Global
 		{273B13E4-6B69-402E-BD8F-327424582E25}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{273B13E4-6B69-402E-BD8F-327424582E25}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{273B13E4-6B69-402E-BD8F-327424582E25}.Release|Any CPU.Build.0 = Release|Any CPU
+		{CC5B1D38-2905-4190-958D-39C9228A4D34}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{CC5B1D38-2905-4190-958D-39C9228A4D34}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{CC5B1D38-2905-4190-958D-39C9228A4D34}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{CC5B1D38-2905-4190-958D-39C9228A4D34}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

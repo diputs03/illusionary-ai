@@ -9,7 +9,7 @@ public class ExpressionTests
     public void Constructor_WithValidParameters_CreatesInstance()
     {
         // Arrange
-        var obj = new Types.Object("obj-001", "TestObject");
+        var obj = new Entity("obj-001", "TestObject");
         const string predicate = "IsValid";
 
         // Act
@@ -25,7 +25,7 @@ public class ExpressionTests
     public void Constructor_WithEmptyPredicate_ThrowsArgumentException()
     {
         // Arrange
-        var obj = new Types.Object("obj-001", "TestObject");
+        var obj = new Entity("obj-001", "TestObject");
 
         // Act & Assert
         Assert.Throws<ArgumentException>(() => new Expression(string.Empty, obj));
