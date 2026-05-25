@@ -14,10 +14,10 @@ public class Constraint
     }
 
     public ConstraintType Type { get; }
-    public Expression ConstraintExpression { get; }
+    public Types.Expression ConstraintExpression { get; }
     public string Description { get; }
 
-    public Constraint(ConstraintType type, Expression constraintExpression, string description = "")
+    public Constraint(ConstraintType type, Types.Expression constraintExpression, string description = "")
     {
         Type = type;
         ConstraintExpression = constraintExpression ?? throw new ArgumentNullException(nameof(constraintExpression));

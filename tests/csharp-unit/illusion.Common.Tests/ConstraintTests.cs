@@ -9,15 +9,15 @@ public class ConstraintTests
     public void Constructor_WithValidParameters_CreatesInstance()
     {
         // Arrange
-        var obj = new Entity("obj-001", "TestObject");
-        var expr = new Expression("IsValid", obj);
+        var obj = new Types.Object("obj-001", "TestObject");
+        var expr = new Types.Expression("IsValid", obj);
 
         // Act
-        var constraint = new Constraint(Constraint.ConstraintType.Precondition, expr, "pretest conditions");
+        var constraint = new Types.Constraint(Types.Constraint.ConstraintType.Precondition, expr, "pretest conditions");
 
         // Assert
         Assert.NotNull(constraint);
-        Assert.Equal(Constraint.ConstraintType.Precondition, constraint.Type);
+        Assert.Equal(Types.Constraint.ConstraintType.Precondition, constraint.Type);
         Assert.Equal(expr, constraint.ConstraintExpression);
         Assert.Equal("pretest conditions", constraint.Description);
     }
@@ -27,16 +27,16 @@ public class ConstraintTests
     {
         // Act & Assert
         Assert.Throws<ArgumentNullException>(() =>
-            new Constraint(Constraint.ConstraintType.Precondition, null!));
+            new Types.Constraint(Types.Constraint.ConstraintType.Precondition, null!));
     }
 
     [Fact]
     public void Verify_WithNullState_ThrowsArgumentNullException()
     {
         // Arrange
-        var obj = new Entity("obj-001", "TestObject");
-        var expr = new Expression("IsValid", obj);
-        var constraint = new Constraint(Constraint.ConstraintType.Precondition, expr);
+        var obj = new Types.Object("obj-001", "TestObject");
+        var expr = new Types.Expression("IsValid", obj);
+        var constraint = new Types.Constraint(Types.Constraint.ConstraintType.Precondition, expr);
 
         // Act & Assert
         Assert.Throws<ArgumentNullException>(() => constraint.Verify(null!));

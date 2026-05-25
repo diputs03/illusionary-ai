@@ -1,14 +1,6 @@
 # Illusionary-AI v2.1
 ## LLM-Free, Zero-Hallucination Deterministic Formal Reasoning & Content Generation System
 
-[![.NET Version](https://img.shields.io/badge/.NET-8.0-blue.svg)](https://dotnet.microsoft.com/download/dotnet/8.0)
-[![Build Status](https://img.shields.io/badge/build-passing-brightgreen.svg)]()
-[![License](https://img.shields.io/badge/license-MIT-yellow.svg)](LICENSE)
-[![Release Version](https://img.shields.io/badge/release-v0.0.0-orange.svg)]()
-[![Code Coverage](https://img.shields.io/badge/coverage-90%2B-brightgreen.svg)]()
-
----
-
 ## 🎯 Core Mission
 Illusionary-AI is a **100% LLM-free deterministic reasoning system** built to eliminate the core limitations of generative large language models: hallucinations, black-box decision-making, non-auditable logic, and inherent privacy risks.
 
@@ -39,8 +31,7 @@ Illusionary-AI solves these problems by abandoning the statistical generation pa
 ---
 
 ## ✨ Key Features
-### 1. LEAN 4-Backed Formally Verified Reasoning Kernel
-- Native integration with the LEAN 4 theorem prover, the gold standard for formal mathematical verification
+### 1. IPK Formally Verified Reasoning Kernel
 - Supports both analytical proof (proving/disproving propositions) and constructive proof (generating provably correct artifacts)
 - Built-in consistency checking to eliminate logical contradictions and circular reasoning
 - Complete proof trace export for audit and compliance use cases
@@ -82,8 +73,7 @@ Illusionary-AI solves these problems by abandoning the statistical generation pa
 ## 🛠️ Tech Stack
 | Layer | Technology | Purpose |
 |-------|------------|---------|
-| **Core Application Layer** | C# .NET 8 | Primary development stack for all core modules, enterprise-grade service layer, and CLI tooling |
-| **Formal Verification Kernel** | LEAN 4 + C++ 17 | High-performance native wrapper for the LEAN 4 C API, core logical reasoning engine |
+| **Core Application Layer** | C# .NET 8 | Primary development stack for all core modules, enterprise-grade service layer, and CLI tooling |                                                          |
 | **Cross-Language Interop** | Standard C ABI | Universal interface layer for seamless communication between C# and native C++ components |
 | **Build System** | CMake 3.25+ | Native C++ project build configuration |
 | **Configuration** | YAML | Human-readable, hierarchical system configuration |
@@ -119,11 +109,6 @@ Illusionary-AI solves these problems by abandoning the statistical generation pa
     cd illusionary-ai
     ```
 
-2.  **Set Up LEAN 4 Dependencies**
-    - Download the latest LEAN 4 Windows x64 prebuilt binaries from [leanprover/lean4](https://github.com/leanprover/lean4/releases)
-    - Extract the archive to `external/lean4/` in the repository root
-    - Verify the directory structure: `external/lean4/include/`, `external/lean4/lib/`, `external/lean4/bin/`
-
 3.  **Build the Solution**
     - **Visual Studio 2022**: Open `illusionary-ai.sln`, right-click the solution, and select **Restore NuGet Packages**, then **Build Solution**
     - **CLI**: Run the following commands in the repository root:
@@ -137,56 +122,6 @@ Illusionary-AI solves these problems by abandoning the statistical generation pa
       ```bash
       dotnet test
       ```
-
-### Quick Start Example: Prove a Simple Mathematical Proposition
-This example demonstrates the core reasoning pipeline with a simple arithmetic proof:
-
-```csharp
-using System;
-using illusion.Common.Types;
-using illusion.CoreLogic.Kernel;
-using illusion.CoreLogic.Prover;
-
-namespace IllusionaryAI.QuickStart;
-
-class Program
-{
-    static void Main(string[] args)
-    {
-        // 1. Initialize the formal verification kernel
-        using var kernel = new KernelAdapter();
-        kernel.Initialize();
-
-        // 2. Load base axioms (ZFC set theory / arithmetic)
-        var arithmeticAxioms = new List<Expression>
-        {
-            new Expression("AdditionIdentity", new Object("axiom", "a + 0 = a")),
-            new Expression("AdditionSuccessor", new Object("axiom", "a + S(b) = S(a + b)"))
-        };
-        kernel.LoadAxioms("PeanoArithmetic", arithmeticAxioms);
-
-        // 3. Define the proposition to prove
-        var targetObject = new Object("arithmetic", "1 + 1 = 2");
-        var proposition = new Expression("IsTrue", targetObject);
-
-        // 4. Run the analytical prover
-        var prover = new AnalyticalProver(kernel);
-        var proofTrace = prover.Prove(proposition);
-
-        // 5. Inspect the result
-        Console.WriteLine($"Proof Success: {proofTrace.IsSuccess}");
-        Console.WriteLine($"Elapsed Time: {proofTrace.ElapsedMilliseconds}ms");
-        Console.WriteLine("\nProof Steps:");
-        foreach (var step in proofTrace.Steps)
-        {
-            Console.WriteLine($"Step {step.StepNumber}: [{step.RuleName}] {step.StepExpression.PredicateName}");
-        }
-
-        // 6. Shutdown the kernel
-        kernel.Shutdown();
-    }
-}
-```
 
 ---
 
@@ -227,7 +162,7 @@ Illusionary-AI uses a strictly layered, unidirectional dependency architecture t
 | Module | Description |
 |--------|-------------|
 | **`illusion.Common`** | Shared foundational library for the entire system. Defines core type system (`E(O)` predicate, state, actions, nodes), custom exceptions, global constants, configuration, logging, cryptography, and serialization utilities. |
-| **`illusion.CoreLogic`** | The zero-hallucination foundation of the system. Wraps the LEAN 4 formal verification kernel, implements analytical/constructive provers, proof trace management, and tool interaction reasoning. |
+| **`illusion.CoreLogic`** | The zero-hallucination foundation of the system. A formal verification kernel, implements analytical/constructive provers, proof trace management, and tool interaction reasoning. |
 | **`illusion.Memory`** | Dual-plane dynamic graph memory system. Implements high-performance graph traversal/search, GGTP module management/signature verification, UPP encrypted local storage, and runtime memory fusion with consistency checking. |
 | **`illusion.Parser`** | Natural language to formal logic converter. Implements domain-adaptive regex parsing, type theory expression parsing, context-aware ambiguity resolution, and pre-validation of input consistency. |
 | **`illusion.Generator`** | Formal logic to output converter. Strict 1:1 mapping between logical steps and natural language/code, multi-scenario template system, and readability optimization with no content generation. |
@@ -237,12 +172,12 @@ Illusionary-AI uses a strictly layered, unidirectional dependency architecture t
 ---
 
 ## 🗺️ Development Roadmap
-| Phase | Timeline | Version | Core Milestones |
-|-------|----------|---------|------------------|
-| **MVP** | Weeks 1-8 | v2.1.0 | Complete core type system, LEAN 4 kernel integration, dual-plane memory foundation, basic parser/generator, and end-to-end theorem proving pipeline. |
-| **Beta** | Weeks 9-18 | v2.2.0 | Full meta-strategy planning engine implementation, constructive code generation, toolchain integration (compilers, test frameworks), and team private deployment support. |
-| **Stable Release** | Weeks 19-24 | v3.0.0 | Production-grade hardening, full documentation, end-to-end test coverage, performance optimization, and official NuGet package release. |
-| **Ecosystem Expansion** | 6+ Months | v3.5.0 | Open-source community module repository, expanded domain-specific axiom libraries, enterprise compliance modules, and multi-language SDK support. |
+| Phase | Timeline | Core Milestones |
+|-------|----------|------------------|
+| **MVP** | Weeks 1-8 | Complete core type system, logic kernel dev, dual-plane memory foundation, basic parser/generator, and end-to-end theorem proving pipeline. |
+| **Beta** | Weeks 9-18 | Full meta-strategy planning engine implementation, constructive code generation, toolchain integration (compilers, test frameworks), and team private deployment support. |
+| **Stable Release** | Weeks 19-24 | Production-grade hardening, full documentation, end-to-end test coverage, performance optimization, and official NuGet package release. |
+| **Ecosystem Expansion** | 6+ Months | Open-source community module repository, expanded domain-specific axiom libraries, enterprise compliance modules, and multi-language SDK support. |
 
 ---
 
@@ -257,35 +192,7 @@ Illusionary-AI is built with privacy and security as first-class design principl
 ---
 
 ## 🤝 Contributing
-We welcome contributions from the formal verification, programming language theory, and secure software development communities.
-
-### Contribution Guidelines
-1.  All code must follow the project's `.editorconfig` style rules and pass all existing tests.
-2.  New features must include full unit test coverage (minimum 90% line coverage).
-3.  All core logic changes must maintain the zero-hallucination and LLM-free core principles.
-4.  Pull requests must include updated documentation for any changed or new functionality.
-5.  Use the Git Flow branching model: create a `feature/your-feature` branch from `develop`, and submit PRs to the `develop` branch.
-
----
-
-## 📄 License
-This project is licensed under the **MIT License** - see the [LICENSE](LICENSE) file for full details.
-
----
-
-## 📚 Academic Citation
-If you use Illusionary-AI in academic research, please cite it using the following BibTeX entry (also available in `CITATION.cff`):
-
-```bibtex
-@software{IllusionaryAI2026,
-  author = {Illusionary-AI Team},
-  title = {Illusionary-AI: LLM-Free Zero-Hallucination Formal Reasoning System},
-  year = {2026},
-  publisher = {GitHub},
-  url = {https://github.com/your-org/illusionary-ai},
-  version = {2.1.0}
-}
-```
+We welcome all contributions.
 
 ---
 

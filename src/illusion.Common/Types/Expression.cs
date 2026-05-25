@@ -6,9 +6,9 @@ namespace illusion.Common.Types;
 public class Expression
 {
     public string PredicateName { get; }
-    public Entity TargetObject { get; }
+    public Object TargetObject { get; }
 
-    public Expression(string predicateName, Entity targetObject)
+    public Expression(string predicateName, Types.Object targetObject)
     {
         if (string.IsNullOrWhiteSpace(predicateName))
             throw new ArgumentException("predicate name cannot be empty", nameof(predicateName));

@@ -15,25 +15,25 @@ public class State
     }
 
     public StatePhase Phase { get; private set; }
-    public IReadOnlyDictionary<string, Entity> Objects { get; }
-    public IReadOnlyList<Expression> Axioms { get; }
-    public IReadOnlyList<Expression> VerifiedConclusions { get; private set; }
+    public IReadOnlyDictionary<string, Types.Object> Objects { get; }
+    public IReadOnlyList<Types.Expression> Axioms { get; }
+    public IReadOnlyList<Types.Expression> VerifiedConclusions { get; private set; }
     public DateTime CreatedAt { get; }
     public DateTime? UpdatedAt { get; private set; }
 
-    public State(IEnumerable<Expression> axioms)
+    public State(IEnumerable<Types.Expression> axioms)
     {
         Phase = StatePhase.Initial;
-        Objects = new Dictionary<string, Entity>().AsReadOnly();
+        Objects = new Dictionary<string, Types.Object>().AsReadOnly();
         Axioms = axioms?.ToList().AsReadOnly() ?? throw new ArgumentNullException(nameof(axioms));
-        VerifiedConclusions = new List<Expression>().AsReadOnly();
+        VerifiedConclusions = new List<Types.Expression>().AsReadOnly();
         CreatedAt = DateTime.UtcNow;
     }
 
     /// <summary>
     /// add a verified conclusion to the state
     /// </summary>
-    public void AddVerifiedConclusion(Expression conclusion)
+    public void AddVerifiedConclusion(Types.Expression conclusion)
     {
         if (conclusion == null)
             throw new ArgumentNullException(nameof(conclusion));

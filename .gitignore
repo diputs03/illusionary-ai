@@ -364,3 +364,7 @@ FodyWeavers.xsd
 
 # Illusionary-AI ignores
 external/
+/src/illusion.CoreLogic.Native/build
+!/src/illusion.CoreLogic.Native/build/illusion.CoreLogic.Native.vcxproj
+/doubao.cache.md
+/.github/copilot-instructions.md

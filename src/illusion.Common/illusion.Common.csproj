@@ -23,10 +23,4 @@
     <PackageReference Include="YamlDotNet" />
   </ItemGroup>
 
-  <ItemGroup>
-    <None Update="illusion.Common.Native.dll">
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-    </None>
-  </ItemGroup>
-
 </Project>

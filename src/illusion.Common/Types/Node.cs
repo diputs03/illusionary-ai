@@ -18,10 +18,10 @@ public abstract class Node
     public string Id { get; }
     public string Name { get; }
     public NodeType Type { get; }
-    public IReadOnlyList<Expression> Definitions { get; }
+    public IReadOnlyList<Types.Expression> Definitions { get; }
     public DateTime CreatedAt { get; }
 
-    protected Node(string id, string name, NodeType type, IEnumerable<Expression> definitions)
+    protected Node(string id, string name, NodeType type, IEnumerable<Types.Expression> definitions)
     {
         if (string.IsNullOrWhiteSpace(id))
             throw new ArgumentException("node ID cannot be empty", nameof(id));

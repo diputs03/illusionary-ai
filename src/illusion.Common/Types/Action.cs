@@ -15,10 +15,10 @@ public class Action
     public string Id { get; }
     public string Name { get; }
     public ActionType Type { get; }
-    public IReadOnlyList<Constraint> Constraints { get; }
+    public IReadOnlyList<Types.Constraint> Constraints { get; }
     public string Description { get; }
 
-    public Action(string id, string name, ActionType type, IEnumerable<Constraint> constraints, string description = "")
+    public Action(string id, string name, ActionType type, IEnumerable<Types.Constraint> constraints, string description = "")
     {
         if (string.IsNullOrWhiteSpace(id))
             throw new ArgumentException("action ID cannot be empty", nameof(id));
