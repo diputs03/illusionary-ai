@@ -1,4 +1,5 @@
 using illusion.Common.Types;
+using illusion.Types;
 using Xunit;
 
 namespace illusion.Common.Tests;
@@ -28,6 +29,6 @@ public class ExpressionTests
         var obj = new Types.Object("obj-001", "TestObject");
 
         // Act & Assert
-        Assert.Throws<ArgumentException>(() => new Types.Expression(string.Empty, obj));
+        Assert.Throws<IAException<ArgumentException>>(() => new Types.Expression(string.Empty, obj));
     }
 }

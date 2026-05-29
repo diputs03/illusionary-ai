@@ -1,4 +1,6 @@
-﻿namespace illusion.Common.Types;
+﻿using illusion.Types;
+
+namespace illusion.Common.Types;
 
 /// <summary>
 /// Action constraints must be satisfied for an action
@@ -20,7 +22,7 @@ public class Constraint
     public Constraint(ConstraintType type, Types.Expression constraintExpression, string description = "")
     {
         Type = type;
-        ConstraintExpression = constraintExpression ?? throw new ArgumentNullException(nameof(constraintExpression));
+        ConstraintExpression = constraintExpression ?? throw new IAException<ArgumentNullException>(nameof(constraintExpression));
         Description = description ?? string.Empty;
     }
 
@@ -31,7 +33,7 @@ public class Constraint
     public bool Verify(State currentState)
     {
         if (currentState == null)
-            throw new ArgumentNullException(nameof(currentState));
+            throw new IAException<ArgumentNullException>(nameof(currentState));
         // TODO: implement the actual verification logic
         return true;
     }

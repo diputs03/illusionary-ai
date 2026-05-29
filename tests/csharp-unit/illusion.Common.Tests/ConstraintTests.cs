@@ -1,4 +1,5 @@
 ﻿using illusion.Common.Types;
+using illusion.Types;
 using Xunit;
 
 namespace illusion.Common.Tests;
@@ -26,7 +27,7 @@ public class ConstraintTests
     public void Constructor_WithNullExpression_ThrowsArgumentNullException()
     {
         // Act & Assert
-        Assert.Throws<ArgumentNullException>(() =>
+        Assert.Throws<IAException<ArgumentNullException>>(() =>
             new Types.Constraint(Types.Constraint.ConstraintType.Precondition, null!));
     }
 
@@ -39,6 +40,6 @@ public class ConstraintTests
         var constraint = new Types.Constraint(Types.Constraint.ConstraintType.Precondition, expr);
 
         // Act & Assert
-        Assert.Throws<ArgumentNullException>(() => constraint.Verify(null!));
+        Assert.Throws<IAException<ArgumentNullException>>(() => constraint.Verify(null!));
     }
 }

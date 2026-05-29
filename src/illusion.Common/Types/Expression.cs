@@ -1,3 +1,5 @@
+using illusion.Types;
+
 namespace illusion.Common.Types;
 
 /// <summary>
@@ -11,10 +13,10 @@ public class Expression
     public Expression(string predicateName, Types.Object targetObject)
     {
         if (string.IsNullOrWhiteSpace(predicateName))
-            throw new ArgumentException("predicate name cannot be empty", nameof(predicateName));
+            throw new IAException<ArgumentException>("predicate name cannot be empty");
 
         PredicateName = predicateName;
-        TargetObject = targetObject ?? throw new ArgumentNullException(nameof(targetObject));
+        TargetObject = targetObject ?? throw new IAException<ArgumentNullException>(nameof(targetObject));
     }
 
     public bool Evaluate()
