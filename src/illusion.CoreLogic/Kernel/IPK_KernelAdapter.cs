@@ -11,7 +11,7 @@ namespace illusion.CoreLogic.Kernel;
 /// <summary>
 /// LEAN kernel adapter
 /// </summary>
-public class KernelAdapter : IKernelAdapter
+public class IPK_KernelAdapter : IKernelAdapter
 {
     private IntPtr _context;
 

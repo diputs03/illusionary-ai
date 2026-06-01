@@ -7,12 +7,12 @@ namespace illusion.CoreLogic.Tests;
 
 public class KernelAdapterTests : IDisposable
 {
-    private readonly KernelAdapter _kernelAdapter;
+    private readonly IPK_KernelAdapter _kernelAdapter;
 
     public KernelAdapterTests()
     {
         Console.Write(System.Reflection.Assembly.GetExecutingAssembly().Location);
-        _kernelAdapter = new KernelAdapter();
+        _kernelAdapter = new IPK_KernelAdapter();
         _kernelAdapter.Initialize();
     }
 
