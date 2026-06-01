@@ -30,12 +30,12 @@ struct AST_Node {
 extern "C" {
 #endif
 
-	IPK_RESULT IPK_CreateSymbolAST(String_Handle name, AST_Handle* out_ast);
-	IPK_RESULT IPK_CreateListAST(size_t length, AST_Handle* elements, AST_Handle* out_ast);
-	IPK_RESULT IPK_CloneAST(AST_Handle ast, AST_Handle* out_ast);
-	bool IPK_EqualAST(AST_Handle a, AST_Handle b);
-    void IPK_FreeAST(AST_Handle ast);
-    void IPK_PrintAST(AST_Handle ast, size_t indent);
+    API_EXPORT IPK_RESULT IPK_CreateSymbolAST(String_Handle name, AST_Handle* out_ast);
+    API_EXPORT IPK_RESULT IPK_CreateListAST(size_t length, AST_Handle* elements, AST_Handle* out_ast);
+    API_EXPORT IPK_RESULT IPK_CloneAST(AST_Handle ast, AST_Handle* out_ast);
+    API_EXPORT bool IPK_EqualAST(AST_Handle a, AST_Handle b);
+    API_EXPORT void IPK_FreeAST(AST_Handle ast);
+    API_EXPORT void IPK_PrintAST(AST_Handle ast, size_t indent);
 
 #ifdef __cplusplus
 }

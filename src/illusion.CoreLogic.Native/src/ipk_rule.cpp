@@ -1,7 +1,7 @@
 #include "ipk_rule.h"
 #include "ipk_unification.h"
 
-IPK_RESULT IPK_CreateRule(String_Handle name, size_t premise_count,
+API_EXPORT IPK_RESULT IPK_CreateRule(String_Handle name, size_t premise_count,
 	AST_Handle* premises, AST_Handle conclusion, Rule_Handle* out_rule) {
 	if (!name || !out_rule || !conclusion || (!premises && premise_count > 0)) {
 		return IPK_ERROR_INVALID_ARGUMENT;
@@ -23,7 +23,7 @@ IPK_RESULT IPK_CreateRule(String_Handle name, size_t premise_count,
 	if (premise_count > 0) {
 		rule->premises = Entity<AST_Handle>(premise_count);
 		if (!rule->premises) {
-			free(rule->name);
+			//free(rule->name);
 			FreeEntity(rule);
 			return IPK_ERROR_OUT_OF_MEMORY;
 		}
@@ -34,7 +34,7 @@ IPK_RESULT IPK_CreateRule(String_Handle name, size_t premise_count,
 					IPK_FreeAST(rule->premises[j]);
 				}
 				FreeEntity(rule->premises);
-				free(rule->name);
+				//free(rule->name);
 				FreeEntity(rule);
 				return IPK_ERROR_OUT_OF_MEMORY;
 			}
@@ -46,7 +46,7 @@ IPK_RESULT IPK_CreateRule(String_Handle name, size_t premise_count,
 	return IPK_SUCCESS;
 }
 
-IPK_RESULT IPK_ApplyRule(Rule_Handle rule, AST_Handle* premise_ins, AST_Handle* out_ins) {
+API_EXPORT IPK_RESULT IPK_ApplyRule(Rule_Handle rule, AST_Handle* premise_ins, AST_Handle* out_ins) {
 	if (!rule || !premise_ins || !out_ins) {
 		return IPK_ERROR_NULL_POINTER;
 	}
@@ -68,11 +68,11 @@ IPK_RESULT IPK_ApplyRule(Rule_Handle rule, AST_Handle* premise_ins, AST_Handle* 
 	return res;
 }
 
-void IPK_FreeRule(Rule_Handle rule) {
+API_EXPORT void IPK_FreeRule(Rule_Handle rule) {
 	if (!rule) {
 		return;
 	}
-	free(rule->name);
+	//free(rule->name);
 	for (size_t i = 0; i < rule->premise_count; i++) {
 		IPK_FreeAST(rule->premises[i]);
 	}

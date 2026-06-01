@@ -1,6 +1,6 @@
 #include "ipk_substitution.h"
 
-IPK_RESULT IPK_CreateSubstitution(Substitution_Handle* out_sub) {
+API_EXPORT IPK_RESULT IPK_CreateSubstitution(Substitution_Handle* out_sub) {
     if (!out_sub) {
         return IPK_ERROR_NULL_POINTER;
     }
@@ -16,7 +16,7 @@ IPK_RESULT IPK_CreateSubstitution(Substitution_Handle* out_sub) {
     return IPK_SUCCESS;
 }
 
-IPK_RESULT IPK_AddSubstitution(Substitution_Handle sub, String_Handle var_name, AST_Handle replacement) {
+API_EXPORT IPK_RESULT IPK_AddSubstitution(Substitution_Handle sub, String_Handle var_name, AST_Handle replacement) {
     if (!sub || !var_name) {
         return IPK_ERROR_NULL_POINTER;
     }
@@ -58,7 +58,7 @@ IPK_RESULT IPK_AddSubstitution(Substitution_Handle sub, String_Handle var_name, 
     return IPK_SUCCESS;
 }
 
-IPK_RESULT IPK_LookupSubstitution(Substitution_Handle sub, String_Handle var_name, AST_Handle* out_replacement) {
+API_EXPORT IPK_RESULT IPK_LookupSubstitution(Substitution_Handle sub, String_Handle var_name, AST_Handle* out_replacement) {
     if (!sub || !var_name || !out_replacement) {
         return IPK_ERROR_NULL_POINTER;
     }
@@ -74,7 +74,7 @@ IPK_RESULT IPK_LookupSubstitution(Substitution_Handle sub, String_Handle var_nam
     return IPK_ERROR_NOT_FOUND;
 }
 
-IPK_RESULT IPK_ApplySubstitution(Substitution_Handle sub, AST_Handle node, AST_Handle* out_result) {
+API_EXPORT IPK_RESULT IPK_ApplySubstitution(Substitution_Handle sub, AST_Handle node, AST_Handle* out_result) {
     if (!sub || !node || !out_result) {
         return IPK_ERROR_NULL_POINTER;
     }
@@ -117,7 +117,7 @@ IPK_RESULT IPK_ApplySubstitution(Substitution_Handle sub, AST_Handle node, AST_H
     return IPK_ERROR;
 }
 
-void IPK_FreeSubstitution(Substitution_Handle sub) {
+API_EXPORT void IPK_FreeSubstitution(Substitution_Handle sub) {
     if (!sub) {
         return;
     }

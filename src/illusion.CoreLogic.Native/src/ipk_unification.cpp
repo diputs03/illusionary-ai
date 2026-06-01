@@ -1,13 +1,13 @@
 #include "ipk_unification.h"
 
-bool IPK_IsMetaVariable(String_Handle symbol_name) {
+API_EXPORT bool IPK_IsMetaVariable(String_Handle symbol_name) {
 	if (!symbol_name || !*symbol_name) {
 		return false;
 	}
 	return isupper(symbol_name[0]);
 }
 
-IPK_RESULT IPK_Unify(AST_Handle pattern, AST_Handle term, Substitution_Handle sub) {
+API_EXPORT IPK_RESULT IPK_Unify(AST_Handle pattern, AST_Handle term, Substitution_Handle sub) {
 	IPK_RESULT res;
 	if (!pattern || !term || !sub) {
 		return IPK_ERROR_NULL_POINTER;

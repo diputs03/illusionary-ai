@@ -11,4 +11,8 @@
     <PackageReference Include="System.Runtime.InteropServices" />
   </ItemGroup>
 
+  <ItemGroup>
+    <ProjectReference Include="..\illusion.Common\illusion.Common.csproj" />
+  </ItemGroup>
+
 </Project>

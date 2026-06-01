@@ -25,12 +25,11 @@ struct IPK_ProofDAG {
 extern "C" {
 #endif
 
-    IPK_RESULT IPK_VerifyProof(Context_Handle context,
+    API_EXPORT IPK_RESULT IPK_VerifyProof(Context_Handle context,
         ProofDAG_Handle proof_dag,
         bool* out_is_valid);
 
-    void IPK_FreeProofDAG(ProofDAG_Handle proof_dag);
-
+    API_EXPORT void IPK_FreeProofDAG(ProofDAG_Handle proof_dag);
 #ifdef __cplusplus
 }
 #endif

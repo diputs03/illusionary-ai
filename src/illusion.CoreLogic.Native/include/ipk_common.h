@@ -9,6 +9,14 @@
 #include <cctype>
 #include <cstring>
 
+#ifdef _WIN32
+#define API_IMPORT __declspec(dllimport)
+#define API_EXPORT __declspec(dllexport)
+#else
+#define API_IMPORT
+#define API_EXPORT
+#endif
+
 /*
 * ERROR CODE RANGE
 * RES & -1 -> SUCCESS/FAILURE
@@ -26,22 +34,22 @@ enum IPK_RESULT {
     IPK_ERROR_SYNTAX_ERROR			 =0x211,
     IPK_ERROR_UNSUPPORTED_OPERATION	 =0x311,
     IPK_ERROR_AXIOM_NOT_FOUND		 =0x411,
-	IPK_ERROR_UNIFICATION_FAILED     =0x511,
-	IPK_ERROR_NOT_FOUND              =0x611,
+    IPK_ERROR_UNIFICATION_FAILED     =0x511,
+    IPK_ERROR_NOT_FOUND              =0x611,
     IPK_ERROR_INTERNET_ERROR		 =0x021,
     IPK_ERROR_MEMORY_ERROR			 =0x031,
     IPK_ERROR_NULL_POINTER			 =0x131,
-	IPK_ERROR_OUT_OF_MEMORY          =0x231,
+    IPK_ERROR_OUT_OF_MEMORY          =0x231,
 };
 
-typedef char* String_Handle;
+typedef const char* String_Handle;
 typedef uint64_t index_t;
 
 #ifdef __cplusplus
 extern "C" {
 #endif
 
-    void IPK_GetErrorMessage(IPK_RESULT result, String_Handle* out_str);
+    API_EXPORT String_Handle IPK_GetErrorMessage(IPK_RESULT result);
 
 #ifdef __cplusplus
 }
@@ -50,7 +58,7 @@ extern "C" {
 // there should be a memory pool to efficiently create entities.
 template<typename T>
 T* Entity(size_t count = 1) {
-	return new (std::nothrow) T[count];
+    return new (std::nothrow) T[count];
 }
 template<typename T>
 void FreeEntity(T* ptr) {

@@ -2,7 +2,7 @@
 #include <queue>
 #include <vector>
 
-IPK_RESULT IPK_VerifyProof(Context_Handle context, ProofDAG_Handle proof_dag, bool* out_is_valid) {
+API_EXPORT IPK_RESULT IPK_VerifyProof(Context_Handle context, ProofDAG_Handle proof_dag, bool* out_is_valid) {
 	if (!context || !proof_dag || !out_is_valid) {
 		return IPK_ERROR_NULL_POINTER;
 	}
@@ -29,7 +29,7 @@ IPK_RESULT IPK_VerifyProof(Context_Handle context, ProofDAG_Handle proof_dag, bo
 	}
 
 }
-void IPK_FreeProofDAG(ProofDAG_Handle proof_dag) {
+API_EXPORT void IPK_FreeProofDAG(ProofDAG_Handle proof_dag) {
 	if (!proof_dag) {
 		return;
 	}

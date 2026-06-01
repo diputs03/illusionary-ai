@@ -1,18 +1,24 @@
 cmake_minimum_required(VERSION 3.29)
-project(illusion.CoreLogic.Native VERSION 0.1.0 LANGUAGES C CXX)
+project(illusion.CoreLogic.Native LANGUAGES C CXX)
 
+set(CMAKE_C_STANDARD 11)
+set(CMAKE_C_STANDARD_REQUIRED ON)
 set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
-set(CMAKE_CXX_EXTENSIONS OFF)
 
-set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/bin)
-set(CMAKE_LIBRARY_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/lib)
-set(CMAKE_ARCHIVE_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/lib)
+set(CSHARP_PROJECTS
+    "illusion.CoreLogic"
+    "illusion.CoreLogic.Tests"
+)
 
-if(WIN32)
-    add_definitions(-D_WIN32 -DUNICODE -D_UNICODE)
-    set(CMAKE_WINDOWS_EXPORT_ALL_SYMBOLS ON)
-endif()
+set(CMAKE_RUNTIME_OUTPUT_DIRECTORY 
+    "${CMAKE_SOURCE_DIR}/../../artifacts/bin/illusion.CoreLogic.Native/$<CONFIG>/"
+)
+set(CMAKE_RUNTIME_OUTPUT_DIRECTORY_DEBUG ${CMAKE_RUNTIME_OUTPUT_DIRECTORY})
+set(CMAKE_RUNTIME_OUTPUT_DIRECTORY_RELEASE ${CMAKE_RUNTIME_OUTPUT_DIRECTORY})
+
+
+include_directories(${CMAKE_SOURCE_DIR}/include)
 
 set(SOURCES
     src/ipk_common.cpp
@@ -34,13 +40,30 @@ set(HEADERS
     include/ipk_kernel.h
 )
 
-add_library(illusion.CoreLogic.Native SHARED ${SOURCES} ${HEADERS})
+add_library(${PROJECT_NAME} SHARED ${SOURCES} ${HEADERS})
 
-target_include_directories(illusion.CoreLogic.Native PUBLIC
+target_compile_definitions(${PROJECT_NAME}
+    PRIVATE
+        $<$<PLATFORM_ID:Windows>:_WIN32;UNICODE;_UNICODE>
+)
+
+target_include_directories(${PROJECT_NAME} PUBLIC
     ${CMAKE_CURRENT_SOURCE_DIR}/include
 )
 
-install(TARGETS illusion.CoreLogic.Native
+foreach(PROJECT_NAME ${CSHARP_PROJECTS})
+    set(CSHARP_OUTPUT_DIR
+        "${CMAKE_SOURCE_DIR}/../../artifacts/bin/${PROJECT_NAME}/$<CONFIG>/net8.0/"
+    )
+    add_custom_command(TARGET illusion.CoreLogic.Native POST_BUILD
+        COMMAND ${CMAKE_COMMAND} -E make_directory ${CSHARP_OUTPUT_DIR}
+        COMMAND ${CMAKE_COMMAND} -E copy
+            $<TARGET_FILE:illusion.CoreLogic.Native>
+            ${CSHARP_OUTPUT_DIR}
+    )
+endforeach()
+
+install(TARGETS ${PROJECT_NAME}
     RUNTIME DESTINATION bin
     LIBRARY DESTINATION lib
     ARCHIVE DESTINATION lib

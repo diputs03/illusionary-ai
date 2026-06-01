@@ -1,6 +1,6 @@
 #include "ipk_ast.h"
 
-IPK_RESULT IPK_CreateSymbolAST(String_Handle name, AST_Handle* out_ast) {
+API_EXPORT IPK_RESULT IPK_CreateSymbolAST(String_Handle name, AST_Handle* out_ast) {
     if (!name || !out_ast) {
         return IPK_ERROR_INVALID_ARGUMENT;
     }
@@ -22,8 +22,8 @@ IPK_RESULT IPK_CreateSymbolAST(String_Handle name, AST_Handle* out_ast) {
     return IPK_SUCCESS;
 }
 
-IPK_RESULT IPK_CreateListAST(size_t length, AST_Handle* elements, AST_Handle* out_ast) {
-    if (!elements || !out_ast) {
+API_EXPORT IPK_RESULT IPK_CreateListAST(size_t length, AST_Handle* elements, AST_Handle* out_ast) {
+    if ((length > 0 && !elements) || !out_ast) {
         return IPK_ERROR_INVALID_ARGUMENT;
     }
 	*out_ast = nullptr;
@@ -53,7 +53,7 @@ IPK_RESULT IPK_CreateListAST(size_t length, AST_Handle* elements, AST_Handle* ou
     return IPK_SUCCESS;
 }
 
-IPK_RESULT IPK_CloneAST(AST_Handle ast, AST_Handle* out_ast) {
+API_EXPORT IPK_RESULT IPK_CloneAST(AST_Handle ast, AST_Handle* out_ast) {
     if (!ast || !out_ast) {
         return IPK_ERROR_INVALID_ARGUMENT;
     }
@@ -61,7 +61,7 @@ IPK_RESULT IPK_CloneAST(AST_Handle ast, AST_Handle* out_ast) {
 
 	IPK_RESULT res;
     SwitchASTNodeType(ast->type, {
-            IPK_CreateSymbolAST(ast->data.symbol, out_ast);
+        return IPK_CreateSymbolAST(ast->data.symbol, out_ast);
     }, {
         size_t length = ast->data.list.length;
         AST_Handle* elements = nullptr;
@@ -94,7 +94,7 @@ IPK_RESULT IPK_CloneAST(AST_Handle ast, AST_Handle* out_ast) {
     });
 }
 
-bool IPK_EqualAST(AST_Handle a, AST_Handle b) {
+API_EXPORT bool IPK_EqualAST(AST_Handle a, AST_Handle b) {
     if (!a && !b) {
         return true;
     }
@@ -120,12 +120,12 @@ bool IPK_EqualAST(AST_Handle a, AST_Handle b) {
     });
 }
 
-void IPK_FreeAST(AST_Handle ast) {
+API_EXPORT void IPK_FreeAST(AST_Handle ast) {
     if (!ast) {
         return;
     }
     SwitchASTNodeType(ast->type, {
-        free(ast->data.symbol);
+        //free(ast->data.symbol);
         FreeEntity(ast);
     }, {
         for (size_t i = 0; i < ast->data.list.length; i++) {
@@ -137,7 +137,7 @@ void IPK_FreeAST(AST_Handle ast) {
     });
 }
 
-void IPK_PrintAST(AST_Handle ast, size_t indent) {
+API_EXPORT void IPK_PrintAST(AST_Handle ast, size_t indent) {
     if (!ast) {
         return;
     }

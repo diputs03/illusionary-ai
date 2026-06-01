@@ -1,4 +1,5 @@
 #include "ipk_context.h"
+#include <unordered_map>
 
 struct IPK_Context {
 	std::unordered_map<index_t, AST_Handle> axioms;
@@ -6,7 +7,7 @@ struct IPK_Context {
 	index_t next_id;
 };
 
-IPK_RESULT IPK_CreateContext(Context_Handle* out_context) {
+API_EXPORT IPK_RESULT IPK_CreateContext(Context_Handle* out_context) {
 	if (!out_context) {
 		return IPK_ERROR_INVALID_ARGUMENT;
 	}
@@ -18,7 +19,7 @@ IPK_RESULT IPK_CreateContext(Context_Handle* out_context) {
 	return IPK_SUCCESS;
 }
 
-void IPK_DestroyContext(Context_Handle context) {
+API_EXPORT void IPK_DestroyContext(Context_Handle context) {
 	if (!context) {
 		return;
 	}
@@ -31,7 +32,7 @@ void IPK_DestroyContext(Context_Handle context) {
 	FreeEntity(context);	
 }
 
-IPK_RESULT IPK_ContextAddAxiom(Context_Handle context,
+API_EXPORT IPK_RESULT IPK_ContextAddAxiom(Context_Handle context,
 	String_Handle name,
 	AST_Handle statement,
 	index_t* out_axiom_id) {
@@ -44,7 +45,7 @@ IPK_RESULT IPK_ContextAddAxiom(Context_Handle context,
 	return IPK_SUCCESS;
 }
 
-IPK_RESULT IPK_ContextAddRule(Context_Handle context, Rule_Handle rule) {
+API_EXPORT IPK_RESULT IPK_ContextAddRule(Context_Handle context, Rule_Handle rule) {
 	if (!context || !rule) {
 		return IPK_ERROR_INVALID_ARGUMENT;
 	}
@@ -52,7 +53,7 @@ IPK_RESULT IPK_ContextAddRule(Context_Handle context, Rule_Handle rule) {
 	return IPK_SUCCESS;
 }
 
-IPK_RESULT IPK_ContextGetAxiom(Context_Handle context, index_t axiom_id, AST_Handle* out_statement) {
+API_EXPORT IPK_RESULT IPK_ContextGetAxiom(Context_Handle context, index_t axiom_id, AST_Handle* out_statement) {
 	if (!context || !out_statement) {
 		return IPK_ERROR_INVALID_ARGUMENT;
 	}
@@ -65,7 +66,7 @@ IPK_RESULT IPK_ContextGetAxiom(Context_Handle context, index_t axiom_id, AST_Han
 	return IPK_SUCCESS;
 }
 
-IPK_RESULT IPK_ContextGetRule(Context_Handle context, String_Handle rule_name, Rule_Handle* out_rule) {
+API_EXPORT IPK_RESULT IPK_ContextGetRule(Context_Handle context, String_Handle rule_name, Rule_Handle* out_rule) {
 	if (!context || !rule_name || !out_rule) {
 		return IPK_ERROR_INVALID_ARGUMENT;
 	}

@@ -17,11 +17,11 @@ struct IPK_Rule {
 extern "C" {
 #endif
 
-	IPK_RESULT IPK_CreateRule(String_Handle name,
+	API_EXPORT IPK_RESULT IPK_CreateRule(String_Handle name,
 		size_t premise_count, AST_Handle* premises,
 		AST_Handle conclusion, Rule_Handle* out_rule);
-	IPK_RESULT IPK_ApplyRule(Rule_Handle rule, AST_Handle* premise_ins, AST_Handle* out_ins);
-	void IPK_FreeRule(Rule_Handle rule);
+	API_EXPORT IPK_RESULT IPK_ApplyRule(Rule_Handle rule, AST_Handle* premise_ins, AST_Handle* out_ins);
+	API_EXPORT void IPK_FreeRule(Rule_Handle rule);
 
 
 #ifdef __cplusplus
