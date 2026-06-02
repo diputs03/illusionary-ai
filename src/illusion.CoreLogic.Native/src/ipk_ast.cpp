@@ -4,7 +4,6 @@ API_EXPORT IPK_RESULT IPK_CreateSymbolAST(String_Handle name, AST_Handle* out_as
     if (!name || !out_ast) {
         return IPK_ERROR_INVALID_ARGUMENT;
     }
-	*out_ast = nullptr;
     
     AST_Handle node = Entity<AST_Node>();
     if (!node) {
@@ -26,7 +25,6 @@ API_EXPORT IPK_RESULT IPK_CreateListAST(size_t length, AST_Handle* elements, AST
     if ((length > 0 && !elements) || !out_ast) {
         return IPK_ERROR_INVALID_ARGUMENT;
     }
-	*out_ast = nullptr;
 
     AST_Handle node = Entity<AST_Node>();
     if (!node) {
@@ -53,13 +51,44 @@ API_EXPORT IPK_RESULT IPK_CreateListAST(size_t length, AST_Handle* elements, AST
     return IPK_SUCCESS;
 }
 
+API_EXPORT IPK_RESULT IPK_GetTypeAST(AST_Handle ast, AST_NodeType* out_type)
+{
+    if (!ast || !out_type) {
+		return IPK_ERROR_INVALID_ARGUMENT;
+    }
+    *out_type = ast->type;
+    return IPK_SUCCESS;
+}
+
+API_EXPORT IPK_RESULT IPK_GetSymbolAST(AST_Handle ast, String_Handle* out_name)
+{
+    if (!ast || !out_name) {
+        return IPK_ERROR_INVALID_ARGUMENT;
+	}
+    if (ast->type != AST_NODE_SYMBOL) {
+        return IPK_ERROR_INVALID_ARGUMENT;
+	}
+    *out_name = ast->data.symbol;
+    return IPK_SUCCESS;
+}
+
+API_EXPORT IPK_RESULT IPK_GetListAST(AST_Handle ast, size_t index, AST_Handle* out_element)
+{
+    if (!ast || !out_element) {
+        return IPK_ERROR_INVALID_ARGUMENT;
+    }
+    if (ast->type != AST_NODE_LIST) {
+        return IPK_ERROR_INVALID_ARGUMENT;
+    }
+	*out_element = ast->data.list.elements[index];
+    return IPK_SUCCESS;
+}
+
 API_EXPORT IPK_RESULT IPK_CloneAST(AST_Handle ast, AST_Handle* out_ast) {
     if (!ast || !out_ast) {
         return IPK_ERROR_INVALID_ARGUMENT;
     }
-	*out_ast = nullptr;
 
-	IPK_RESULT res;
     SwitchASTNodeType(ast->type, {
         return IPK_CreateSymbolAST(ast->data.symbol, out_ast);
     }, {
@@ -72,7 +101,7 @@ API_EXPORT IPK_RESULT IPK_CloneAST(AST_Handle ast, AST_Handle* out_ast) {
             }
             for (size_t i = 0; i < length; i++) {
                 res = IPK_CloneAST(ast->data.list.elements[i], &elements[i]);
-                if (!res) {
+                if (res != IPK_SUCCESS) {
                     for (size_t j = 0; j < i; j++) {
                         IPK_FreeAST(elements[j]);
                     }
@@ -83,7 +112,7 @@ API_EXPORT IPK_RESULT IPK_CloneAST(AST_Handle ast, AST_Handle* out_ast) {
         }
 
         res = IPK_CreateListAST(length, elements, out_ast);
-        if (!res) {
+        if (res != IPK_SUCCESS) {
             for (size_t i = 0; i < length; i++) {
                 IPK_FreeAST(elements[i]);
             }

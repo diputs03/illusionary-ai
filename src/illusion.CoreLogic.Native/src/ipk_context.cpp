@@ -57,7 +57,6 @@ API_EXPORT IPK_RESULT IPK_ContextGetAxiom(Context_Handle context, index_t axiom_
 	if (!context || !out_statement) {
 		return IPK_ERROR_INVALID_ARGUMENT;
 	}
-	*out_statement = nullptr;
 	auto it = context->axioms.find(axiom_id);
 	if (it == context->axioms.end()) {
 		return IPK_ERROR_NOT_FOUND;
@@ -70,7 +69,6 @@ API_EXPORT IPK_RESULT IPK_ContextGetRule(Context_Handle context, String_Handle r
 	if (!context || !rule_name || !out_rule) {
 		return IPK_ERROR_INVALID_ARGUMENT;
 	}
-	*out_rule = nullptr;
 	auto it = context->rules.find(rule_name);
 	if (it == context->rules.end()) {
 		return IPK_ERROR_NOT_FOUND;

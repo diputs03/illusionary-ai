@@ -6,7 +6,6 @@ API_EXPORT IPK_RESULT IPK_CreateRule(String_Handle name, size_t premise_count,
 	if (!name || !out_rule || !conclusion || (!premises && premise_count > 0)) {
 		return IPK_ERROR_INVALID_ARGUMENT;
 	}
-	*out_rule = nullptr;
 
 	Rule_Handle rule = Entity<IPK_Rule>();
 	if (!rule) {
@@ -50,15 +49,14 @@ API_EXPORT IPK_RESULT IPK_ApplyRule(Rule_Handle rule, AST_Handle* premise_ins, A
 	if (!rule || !premise_ins || !out_ins) {
 		return IPK_ERROR_NULL_POINTER;
 	}
-	*out_ins = nullptr;
 	Substitution_Handle sub;
-	IPK_RESULT res = IPK_CreateSubstitution(&sub);
-	if (!res) {
+	res = IPK_CreateSubstitution(&sub);
+	if (res != IPK_SUCCESS) {
 		return res;
 	}
 	for (size_t i = 0; i < rule->premise_count; i++) {
 		res = IPK_Unify(rule->premises[i], premise_ins[i], sub);
-		if (!res) {
+		if (res != IPK_SUCCESS) {
 			IPK_FreeSubstitution(sub);
 			return res;
 		}

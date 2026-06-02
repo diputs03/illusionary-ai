@@ -24,7 +24,6 @@
 * RES & 0x02 -> INTERNET ERROR
 * RES & 0x03 -> MEMORY   ERROR
 */
-
 typedef enum IPK_RESULT IPK_RESULT;
 enum IPK_RESULT {
     IPK_SUCCESS						 =0x000,
@@ -42,7 +41,14 @@ enum IPK_RESULT {
     IPK_ERROR_OUT_OF_MEMORY          =0x231,
 };
 
-typedef const char* String_Handle;
+#ifdef LONG_CHAR
+#define Char wchar_t
+#define strdup wcsdup
+#define strcmp wcscmp
+#else
+#define Char char
+#endif
+typedef const Char* String_Handle;
 typedef uint64_t index_t;
 
 #ifdef __cplusplus
@@ -64,4 +70,9 @@ template<typename T>
 void FreeEntity(T* ptr) {
     delete[] ptr;
 }
+/*
+* Process checks should be based entire on the return result, for nonsuccessful results
+* the output pointers may not be set to valid values, and should not be used.
+*/
+static IPK_RESULT res;
 #endif // IPK_COMMON_H

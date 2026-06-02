@@ -21,23 +21,25 @@ set(CMAKE_RUNTIME_OUTPUT_DIRECTORY_RELEASE ${CMAKE_RUNTIME_OUTPUT_DIRECTORY})
 include_directories(${CMAKE_SOURCE_DIR}/include)
 
 set(SOURCES
-    src/ipk_common.cpp
     src/ipk_ast.cpp
-    src/ipk_substitution.cpp
-    src/ipk_unification.cpp
-    src/ipk_rule.cpp
+    src/ipk_common.cpp
     src/ipk_context.cpp
     src/ipk_kernel.cpp
+    src/ipk_parser.cpp
+    src/ipk_rule.cpp
+    src/ipk_substitution.cpp
+    src/ipk_unification.cpp
 )
 
 set(HEADERS
-    include/ipk_common.h
     include/ipk_ast.h
-    include/ipk_substitution.h
-    include/ipk_unification.h
-    include/ipk_rule.h
+    include/ipk_common.h
     include/ipk_context.h
     include/ipk_kernel.h
+    include/ipk_parser.h
+    include/ipk_rule.h
+    include/ipk_substitution.h
+    include/ipk_unification.h
 )
 
 add_library(${PROJECT_NAME} SHARED ${SOURCES} ${HEADERS})
@@ -70,3 +72,4 @@ install(TARGETS ${PROJECT_NAME}
 )
 
 install(FILES ${HEADERS} DESTINATION include)
+add_subdirectory(test)

@@ -4,7 +4,6 @@ API_EXPORT IPK_RESULT IPK_CreateSubstitution(Substitution_Handle* out_sub) {
     if (!out_sub) {
         return IPK_ERROR_NULL_POINTER;
     }
-	*out_sub = nullptr;
 
     Substitution_Handle sub = Entity<IPK_Substitution>();
     if (!sub) {
@@ -37,12 +36,12 @@ API_EXPORT IPK_RESULT IPK_AddSubstitution(Substitution_Handle sub, String_Handle
         return IPK_ERROR_OUT_OF_MEMORY;
     }
 
-    for (uint32_t i = 0; i < sub->count; i++) {
+    for (size_t i = 0; i < sub->count; i++) {
         new_pairs[i] = sub->pairs[i];
     }
 
     new_pairs[sub->count].var_name = strdup(var_name);
-    IPK_RESULT res = IPK_CloneAST(replacement, &new_pairs[sub->count].replacement);
+    res = IPK_CloneAST(replacement, &new_pairs[sub->count].replacement);
 
     if (!new_pairs[sub->count].var_name || !new_pairs[sub->count].replacement) {
         free(new_pairs[sub->count].var_name);
@@ -62,7 +61,6 @@ API_EXPORT IPK_RESULT IPK_LookupSubstitution(Substitution_Handle sub, String_Han
     if (!sub || !var_name || !out_replacement) {
         return IPK_ERROR_NULL_POINTER;
     }
-	*out_replacement = nullptr;
 
     for (size_t i = 0; i < sub->count; i++) {
         if (strcmp(sub->pairs[i].var_name, var_name) == 0) {
@@ -78,9 +76,7 @@ API_EXPORT IPK_RESULT IPK_ApplySubstitution(Substitution_Handle sub, AST_Handle 
     if (!sub || !node || !out_result) {
         return IPK_ERROR_NULL_POINTER;
     }
-	*out_result = nullptr;
 
-	IPK_RESULT res;
     SwitchASTNodeType(node->type, {
 		AST_Handle replacement;
         res = IPK_LookupSubstitution(sub, node->data.symbol, &replacement);
@@ -99,7 +95,7 @@ API_EXPORT IPK_RESULT IPK_ApplySubstitution(Substitution_Handle sub, AST_Handle 
         }
         for (size_t i = 0; i < length; i++) {
             res = IPK_ApplySubstitution(sub, node->data.list.elements[i], &new_elements[i]);
-            if (!res) {
+            if (res != IPK_SUCCESS) {
                 for (size_t j = 0; j < i; j++) {
                     IPK_FreeAST(new_elements[j]);
                 }

@@ -8,7 +8,6 @@ API_EXPORT bool IPK_IsMetaVariable(String_Handle symbol_name) {
 }
 
 API_EXPORT IPK_RESULT IPK_Unify(AST_Handle pattern, AST_Handle term, Substitution_Handle sub) {
-	IPK_RESULT res;
 	if (!pattern || !term || !sub) {
 		return IPK_ERROR_NULL_POINTER;
 	}

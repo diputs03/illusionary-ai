@@ -1,0 +1,20 @@
+#ifndef IPK_PARSER
+#define IPK_PARSER
+
+#include "ipk_ast.h"
+#include <cstring>
+#include <cctype>
+#include <vector>
+#include <stack>
+typedef enum LexState LexState;
+
+#ifdef __cplusplus
+extern "C" {
+#endif
+    API_EXPORT IPK_RESULT IPK_ParseStatement(String_Handle s_expression, AST_Handle* out_ast);
+#ifdef __cplusplus
+}
+#endif
+
+
+#endif // !IPK_PARSER

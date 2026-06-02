@@ -27,7 +27,7 @@ API_EXPORT IPK_RESULT IPK_VerifyProof(Context_Handle context, ProofDAG_Handle pr
 		*out_is_valid = false;
 		return IPK_SUCCESS;
 	}
-
+	return IPK_ERROR;
 }
 API_EXPORT void IPK_FreeProofDAG(ProofDAG_Handle proof_dag) {
 	if (!proof_dag) {

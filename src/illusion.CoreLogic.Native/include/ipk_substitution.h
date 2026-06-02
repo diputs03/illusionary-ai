@@ -7,7 +7,7 @@ typedef struct IPK_SubstitutionPair IPK_SubstitutionPair;
 typedef IPK_SubstitutionPair* SubstitutionPair_Handle;
 
 struct IPK_SubstitutionPair {
-    char* var_name;
+    Char* var_name;
     AST_Handle replacement;
 };
 
