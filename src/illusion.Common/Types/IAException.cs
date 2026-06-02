@@ -1,4 +1,4 @@
-namespace illusion.Types;
+namespace illusion.Common.Types;
 
 /// <summary>
 /// base exceptions class
@@ -12,7 +12,7 @@ public class IAException<T> : Exception
     public IAException(string message, Exception? e = null, string? description = null)
         : base(message, e)
     {
-        ErrorCode = nameof(T);
+        ErrorCode = nameof(T)+"Error";
         OccuredAt = DateTime.UtcNow;
         Description = description;
     }

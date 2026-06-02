@@ -1,4 +1,4 @@
-﻿using illusion.Types;
+﻿using illusion.Common.Types;
 
 namespace illusion.Common.Types;
 
