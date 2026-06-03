@@ -1,31 +1,39 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
 
-  <PropertyGroup>
-    <TargetFramework>net8.0</TargetFramework>
-    <ImplicitUsings>enable</ImplicitUsings>
-    <Nullable>enable</Nullable>
+	<PropertyGroup>
+		<TargetFramework>net8.0</TargetFramework>
+		<ImplicitUsings>enable</ImplicitUsings>
+		<Nullable>enable</Nullable>
 
-    <CppProjectDir>..\illusion.CoreLogic.Native\</CppProjectDir>
-	  <CppBuildDir>$(CppProjectDir)build\</CppBuildDir>
-	  <CppConfiguration>$(Configuration)</CppConfiguration>
-	  <CppPlatform>x64</CppPlatform>
-  </PropertyGroup>
+		<CppProjectDir>..\illusion.CoreLogic.Native\</CppProjectDir>
+		<CppBuildDir>$(CppProjectDir)build\</CppBuildDir>
+		<CppConfiguration>$(Configuration)</CppConfiguration>
+		<HostArchitecture Condition="'$(PROCESSOR_ARCHITECTURE)' == 'AMD64'">x64</HostArchitecture>
+	    <HostArchitecture Condition="'$(PROCESSOR_ARCHITECTURE)' == 'ARM64'">ARM64</HostArchitecture>
+		<HostArchitecture Condition="'$(PROCESSOR_ARCHITECTURE)' == 'IA64'">IA64</HostArchitecture>
+		<CppPlatform>$(HostArchitecture)</CppPlatform>
+	</PropertyGroup>
 
 	<Target Name="BuildNativeCpp" BeforeTargets="BeforeBuild">
 		<Message Importance="high" Text="Building illusion.CoreLogic native C++ code..." />
 		<MakeDir Directories="$(CppBuildDir)" />
-		<Exec Command="cmake -G &quot;Visual Studio 17 2022&quot; -A $(CppPlatform) .." WorkingDirectory="$(CppBuildDir)" Condition="!Exists('$(CppBuildDir)CMakeCache.text')" />
+		<Exec Command="cmake -G &quot;Visual Studio 17 2022&quot; -A $(CppPlatform) .." WorkingDirectory="$(CppBuildDir)" Condition="!Exists('$(CppBuildDir)CMakeCache.txt')" />
 		<Exec Command="cmake --build . --config $(CppConfiguration)" WorkingDirectory="$(CppBuildDir)" />
 		<Message Importance="high" Text="illusion.CoreLogic native C++ build completed." />
 	</Target>
 
-  <ItemGroup>
-    <PackageReference Include="MessagePack" />
-    <PackageReference Include="System.Runtime.InteropServices" />
-  </ItemGroup>
+	<ItemGroup>
+		<PackageReference Include="MessagePack" />
+		<PackageReference Include="System.Runtime.InteropServices" />
+	</ItemGroup>
 
-  <ItemGroup>
-        <ProjectReference Include="..\illusion.Common\illusion.Common.csproj" />
-  </ItemGroup>
+	<ItemGroup>
+		<ProjectReference Include="..\illusion.Common\illusion.Common.csproj" />
+	</ItemGroup>
+	
+	<Target Name="CopyNativeDll" AfterTargets="Build">
+		<ItemGroup><NativeDllFiles Include="$(CppBuildDir)bin\$(CppConfiguration)\*" /></ItemGroup>
+		<Copy SourceFiles="@(NativeDllFiles)" DestinationFolder="$(OutputPath)" OverwriteReadOnlyFiles="true" SkipUnchangedFiles="true" />
+	</Target>
 
 </Project>

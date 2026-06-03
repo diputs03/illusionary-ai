@@ -6,17 +6,9 @@ set(CMAKE_C_STANDARD_REQUIRED ON)
 set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
-set(CSHARP_PROJECTS
-    "illusion.CoreLogic"
-    "illusion.CoreLogic.Tests"
-)
-
-set(CMAKE_RUNTIME_OUTPUT_DIRECTORY 
-    "${CMAKE_SOURCE_DIR}/../../artifacts/bin/illusion.CoreLogic.Native/$<CONFIG>/"
-)
-set(CMAKE_RUNTIME_OUTPUT_DIRECTORY_DEBUG ${CMAKE_RUNTIME_OUTPUT_DIRECTORY})
-set(CMAKE_RUNTIME_OUTPUT_DIRECTORY_RELEASE ${CMAKE_RUNTIME_OUTPUT_DIRECTORY})
-
+set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/bin)
+set(CMAKE_LIBRARY_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/lib)
+set(CMAKE_ARCHIVE_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/lib)
 
 include_directories(${CMAKE_SOURCE_DIR}/include)
 
@@ -52,18 +44,6 @@ target_compile_definitions(${PROJECT_NAME}
 target_include_directories(${PROJECT_NAME} PUBLIC
     ${CMAKE_CURRENT_SOURCE_DIR}/include
 )
-
-foreach(PROJECT_NAME ${CSHARP_PROJECTS})
-    set(CSHARP_OUTPUT_DIR
-        "${CMAKE_SOURCE_DIR}/../../artifacts/bin/${PROJECT_NAME}/$<CONFIG>/net8.0/"
-    )
-    add_custom_command(TARGET illusion.CoreLogic.Native POST_BUILD
-        COMMAND ${CMAKE_COMMAND} -E make_directory ${CSHARP_OUTPUT_DIR}
-        COMMAND ${CMAKE_COMMAND} -E copy
-            $<TARGET_FILE:illusion.CoreLogic.Native>
-            ${CSHARP_OUTPUT_DIR}
-    )
-endforeach()
 
 install(TARGETS ${PROJECT_NAME}
     RUNTIME DESTINATION bin
