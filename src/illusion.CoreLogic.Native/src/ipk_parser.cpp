@@ -65,6 +65,7 @@ API_EXPORT IPK_RESULT IPK_ParseStatement(String_Handle s_expression, AST_Handle*
     lex_reset(s_expression);
 
     std::stack<std::vector<AST_Handle>> parse_stack;
+	int depth = 0;
 
     auto cleanup_error = [&]() {
         while (!parse_stack.empty()) {
@@ -80,43 +81,42 @@ API_EXPORT IPK_RESULT IPK_ParseStatement(String_Handle s_expression, AST_Handle*
         }
     };
 
+    auto makelist = [&](std::vector<AST_Handle>& elements) -> AST_Handle {
+        AST_Handle* elements_array = nullptr;
+        if (!elements.empty()) {
+            elements_array = Entity<AST_Handle>(elements.size());
+            for (size_t i = 0; i < elements.size(); i++) {
+                elements_array[i] = elements[i];
+            }
+        }
+
+        AST_Handle list_node;
+        res = IPK_CreateListAST(elements.size(), elements_array, &list_node);
+
+        delete[] elements_array;
+        return list_node;
+    };
+
     int token;
     while ((token = lex_next_token()) != 0) {
         if (token == '(') {
             parse_stack.push(std::vector<AST_Handle>());
+			depth++;
         }
         else if (token == ')') {
             if (parse_stack.empty()) {
                 cleanup_error();
                 return IPK_ERROR_INVALID_ARGUMENT;
             }
+			depth--;
 
             auto elements = parse_stack.top();
             parse_stack.pop();
 
-            AST_Handle* elements_array = nullptr;
-            if (!elements.empty()) {
-                elements_array = Entity<AST_Handle>(elements.size());
-                for (size_t i = 0; i < elements.size(); i++) {
-                    elements_array[i] = elements[i];
-                }
-            }
-
-            AST_Handle list_node;
-            res = IPK_CreateListAST(elements.size(), elements_array, &list_node);
-
-            delete[] elements_array;
             if (parse_stack.empty()) {
-                if (!*out_ast) {
-                    IPK_FreeAST(list_node);
-                    cleanup_error();
-					return IPK_ERROR_INVALID_ARGUMENT;
-                }
-                *out_ast = list_node;
+				parse_stack.push(std::vector<AST_Handle>());
             }
-            else {
-                parse_stack.top().push_back(list_node);
-            }
+            parse_stack.top().push_back(makelist(elements));
         }
         else if (token == '$') {
             AST_Handle symbol_node;
@@ -136,9 +136,10 @@ API_EXPORT IPK_RESULT IPK_ParseStatement(String_Handle s_expression, AST_Handle*
         }
     }
 
-    if (!parse_stack.empty()) {
+    if (depth != 0) {
         cleanup_error();
         return IPK_ERROR_INVALID_ARGUMENT;
     }
+    *out_ast = makelist(parse_stack.top());
     return IPK_SUCCESS;
 }

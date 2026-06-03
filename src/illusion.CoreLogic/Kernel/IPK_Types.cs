@@ -1,5 +1,5 @@
 ﻿global using Index_t = System.Int64;
-global using Size_t = System.UInt64;
+global using Size_t = ulong;
 
 using System;
 using System.Runtime.InteropServices;

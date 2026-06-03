@@ -1,4 +1,7 @@
 #include "ipk_ast.h"
+#include <sstream>
+#include <iostream>
+#include <string>
 
 API_EXPORT IPK_RESULT IPK_CreateSymbolAST(String_Handle name, AST_Handle* out_ast) {
     if (!name || !out_ast) {
@@ -166,20 +169,31 @@ API_EXPORT void IPK_FreeAST(AST_Handle ast) {
     });
 }
 
-API_EXPORT void IPK_PrintAST(AST_Handle ast, size_t indent) {
+void IPK_MakeString(AST_Handle ast, size_t indent, std::ostream& os) {
     if (!ast) {
         return;
     }
     for (size_t i = 0; i < indent; i++) {
-        printf("  ");
-    }
+        os << "  ";
+	}
     SwitchASTNodeType(ast->type, {
-        printf("Symbol: %s\n", ast->data.symbol);
+        os << "Symbol: " << ast->data.symbol << std::endl;
     }, {
-        printf("List: length=%llu\n", ast->data.list.length);
+		os << "List: length=" << ast->data.list.length << std::endl;
         for (size_t i = 0; i < ast->data.list.length; i++) {
-            IPK_PrintAST(ast->data.list.elements[i], indent + 1);
+            IPK_MakeString(ast->data.list.elements[i], indent + 1, os);
         }
-        return;
     });
+}
+
+API_EXPORT void IPK_ToStringAST(AST_Handle ast, String_Handle* out_str) {
+    std::ostringstream oss{};
+    IPK_MakeString(ast, 0, oss);
+    *out_str = strdup(oss.str().c_str());
+}
+
+API_EXPORT void IPK_PrintAST(AST_Handle ast) {
+    String_Handle str;
+    IPK_ToStringAST(ast, &str);
+    printf("%s", str);
 }

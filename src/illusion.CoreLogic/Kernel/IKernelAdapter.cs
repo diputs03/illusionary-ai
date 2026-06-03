@@ -16,7 +16,7 @@ public interface IKernelAdapter : IDisposable
     IntPtr CreateListAST(IntPtr[] elements);
     IntPtr CloneAST(IntPtr ast);
     bool EqualAST(IntPtr a, IntPtr b);
-    void PrintAST(IntPtr ast, ulong indent = 0);
+    void PrintAST(IntPtr ast);
     //Index_t AddAxiom(string name, string statement);
     //string GetAxiom(Index_t axiomId);
     //Index_t AddRule(string name, string statement, IntPtr[] premiseIds);

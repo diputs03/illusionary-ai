@@ -57,12 +57,12 @@ API_EXPORT IPK_RESULT IPK_ApplyRule(Rule_Handle rule, AST_Handle* premise_ins, A
 	for (size_t i = 0; i < rule->premise_count; i++) {
 		res = IPK_Unify(rule->premises[i], premise_ins[i], sub);
 		if (res != IPK_SUCCESS) {
-			IPK_FreeSubstitution(sub);
+			IPK_DestroySubstitution(sub);
 			return res;
 		}
 	}
 	res = IPK_ApplySubstitution(sub, rule->conclusion, out_ins);
-	IPK_FreeSubstitution(sub);
+	IPK_DestroySubstitution(sub);
 	return res;
 }
 
