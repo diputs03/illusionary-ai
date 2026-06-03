@@ -1,5 +1,4 @@
 using illusion.Common.Types;
-using illusion.Types;
 using Xunit;
 
 namespace illusion.Common.Tests;

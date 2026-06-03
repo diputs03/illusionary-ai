@@ -4,23 +4,7 @@
 		<TargetFramework>net8.0</TargetFramework>
 		<ImplicitUsings>enable</ImplicitUsings>
 		<Nullable>enable</Nullable>
-
-		<CppProjectDir>..\illusion.CoreLogic.Native\</CppProjectDir>
-		<CppBuildDir>$(CppProjectDir)build\</CppBuildDir>
-		<CppConfiguration>$(Configuration)</CppConfiguration>
-		<HostArchitecture Condition="'$(PROCESSOR_ARCHITECTURE)' == 'AMD64'">x64</HostArchitecture>
-	    <HostArchitecture Condition="'$(PROCESSOR_ARCHITECTURE)' == 'ARM64'">ARM64</HostArchitecture>
-		<HostArchitecture Condition="'$(PROCESSOR_ARCHITECTURE)' == 'IA64'">IA64</HostArchitecture>
-		<CppPlatform>$(HostArchitecture)</CppPlatform>
 	</PropertyGroup>
-
-	<Target Name="BuildNativeCpp" BeforeTargets="BeforeBuild">
-		<Message Importance="high" Text="Building illusion.CoreLogic native C++ code..." />
-		<MakeDir Directories="$(CppBuildDir)" />
-		<Exec Command="cmake -G &quot;Visual Studio 17 2022&quot; -A $(CppPlatform) .." WorkingDirectory="$(CppBuildDir)" Condition="!Exists('$(CppBuildDir)CMakeCache.txt')" />
-		<Exec Command="cmake --build . --config $(CppConfiguration)" WorkingDirectory="$(CppBuildDir)" />
-		<Message Importance="high" Text="illusion.CoreLogic native C++ build completed." />
-	</Target>
 
 	<ItemGroup>
 		<PackageReference Include="MessagePack" />
