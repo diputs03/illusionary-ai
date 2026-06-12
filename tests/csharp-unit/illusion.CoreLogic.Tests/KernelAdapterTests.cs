@@ -1,5 +1,5 @@
 using illusion.Common.Types;
-using illusion.CoreLogic.Kernel;
+using illusion.Kernel.IPK_Adapter;
 using System.Linq.Expressions;
 using Xunit;
 
@@ -48,6 +48,28 @@ public class KernelAdapterTests : IDisposable
         Assert.NotEqual(IntPtr.Zero, ast2);
         Assert.NotEqual(IntPtr.Zero, ast);
 
+        _kernelAdapter.PrintAST(ast);
+        _kernelAdapter.FreeAST(ast);
+    }
+
+    [Fact]
+    public void ParseExpression_Test()
+    {
+        // Act
+        string line = "implies P (and Q R)";
+        line = "";
+        for (int i = 0; i < 1000; i++)
+        {
+            line += '(';
+        }
+        line += 'A';
+        for (int i = 0; i < 1000; i++)
+        {
+            line += ')';
+        }
+        IntPtr ast = _kernelAdapter.ParseStatement(line);
+        // Assert
+        Assert.NotEqual(IntPtr.Zero, ast);
         _kernelAdapter.PrintAST(ast);
         _kernelAdapter.FreeAST(ast);
     }

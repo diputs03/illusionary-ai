@@ -1,9 +1,8 @@
 ﻿global using Index_t = System.Int64;
 global using Size_t = ulong;
-
 using System;
 using System.Runtime.InteropServices;
-namespace illusion.CoreLogic.Kernel
+namespace illusion.Kernel.IPK_Adapter
 {
     #region IPK_Common
     internal enum IPK_RESULT
@@ -21,25 +20,6 @@ namespace illusion.CoreLogic.Kernel
         IPK_ERROR_MEMORY_ERROR           = 0x031,
         IPK_ERROR_NULL_POINTER           = 0x131,
         IPK_ERROR_OUT_OF_MEMORY          = 0x231,
-    }
-    #endregion
-
-    #region IPK_Kernel
-    [StructLayout(LayoutKind.Sequential, CharSet = CharSet.Ansi)]
-    internal struct IPK_ProofNode
-    {
-        public Index_t Id;
-        public string RuleName;
-        public IntPtr Statement;
-        public Size_t PremiseCount;
-        public IntPtr PremiseIds;
-    }
-
-    [StructLayout(LayoutKind.Sequential, CharSet = CharSet.Ansi)]
-    internal struct IPK_ProofDAG
-    {
-        public Size_t NodeCount;
-        public IntPtr Nodes;
     }
     #endregion
 }

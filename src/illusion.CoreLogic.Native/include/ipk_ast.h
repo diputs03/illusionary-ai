@@ -4,25 +4,24 @@
 #include "ipk_common.h"
 
 typedef enum {
-	AST_NODE_SYMBOL,
-	AST_NODE_LIST,
-} AST_NodeType;
+	IPK_AST_NODE_SYMBOL,
+	IPK_AST_NODE_LIST,
+} IPK_AST_NodeType;
 
-#define SwitchASTNodeType(x, y, z) {if (x== AST_NODE_SYMBOL) y else z }
+#define IPK_AST_SwitchNodeType(x, y, z) {if (x== IPK_AST_NODE_SYMBOL) y else z }
 
-typedef struct AST_Node AST_Node;
-typedef AST_Node* AST_Handle;
+typedef struct IPK_AST_Node IPK_AST_Node;
+typedef IPK_AST_Node* IPK_AST_Handle;
 
-struct AST_Node {
-    AST_NodeType type;
+struct IPK_AST_Node {
+    IPK_AST_NodeType type;
     union {
-        String_Handle symbol;
+        IPK_String symbol;
         struct {
             size_t length;
-            AST_Handle* elements;
+            IPK_AST_Handle* elements;
         } list;
     } data;
-    String_Handle preorder;
 };
 
 
@@ -30,20 +29,19 @@ struct AST_Node {
 extern "C" {
 #endif
 
-    API_EXPORT IPK_RESULT IPK_CreateSymbolAST(String_Handle name, AST_Handle* out_ast);
-    API_EXPORT IPK_RESULT IPK_CreateListAST(size_t length, AST_Handle* elements, AST_Handle* out_ast);
+    API_EXPORT IPK_RESULT IPK_AST_CreateSymbol(IPK_String name, IPK_AST_Handle* out_ast);
+    API_EXPORT IPK_RESULT IPK_AST_CreateList(size_t length, IPK_AST_Handle* elements, IPK_AST_Handle* out_ast);
 
-	API_EXPORT IPK_RESULT IPK_GetTypeAST(AST_Handle ast, AST_NodeType* out_type);
-	API_EXPORT IPK_RESULT IPK_GetSymbolAST(AST_Handle ast, String_Handle* out_name);
-	API_EXPORT IPK_RESULT IPK_GetListAST(AST_Handle ast, size_t index, AST_Handle* out_element);
+	API_EXPORT IPK_RESULT IPK_AST_GetType(IPK_AST_Handle ast, IPK_AST_NodeType* out_type);
+	API_EXPORT IPK_RESULT IPK_AST_GetSymbol(IPK_AST_Handle ast, IPK_String* out_name);
+	API_EXPORT IPK_RESULT IPK_AST_GetList(IPK_AST_Handle ast, size_t index, IPK_AST_Handle* out_element);
     
-    API_EXPORT IPK_RESULT IPK_CloneAST(AST_Handle ast, AST_Handle* out_ast);
+    API_EXPORT IPK_RESULT IPK_AST_Clone(IPK_AST_Handle ast, IPK_AST_Handle* out_ast);
     
-    API_EXPORT bool IPK_EqualAST(AST_Handle a, AST_Handle b);
-    API_EXPORT void IPK_ToStringAST(AST_Handle ast, String_Handle* out_str);
-    API_EXPORT void IPK_PrintAST(AST_Handle ast);
+    API_EXPORT bool IPK_AST_Equal(IPK_AST_Handle a, IPK_AST_Handle b);
+    API_EXPORT IPK_RESULT IPK_AST_ToString(IPK_AST_Handle ast, IPK_String* out_str);
     
-    API_EXPORT void IPK_FreeAST(AST_Handle ast);
+    API_EXPORT void IPK_AST_Destroy(IPK_AST_Handle ast);
 
 #ifdef __cplusplus
 }

@@ -5,7 +5,7 @@ using System.Runtime.InteropServices;
 using illusion.Common.Types;
 
 
-namespace illusion.CoreLogic.Kernel
+namespace illusion.Kernel.IPK_Adapter
 {
     public enum AST_NodeType
     {
@@ -15,6 +15,10 @@ namespace illusion.CoreLogic.Kernel
     public class AST : IEquatable<AST>
     {
         internal IntPtr NativeHandle { get; private set; }
+        public AST(IntPtr handle = default)
+        {
+            NativeHandle = handle;
+        }
         public AST_NodeType Type()
         {
             AST_NodeType type;
@@ -31,20 +35,19 @@ namespace illusion.CoreLogic.Kernel
         {
             IntPtr element;
             IPK_BaseMethods.CheckResult(IPK_BaseMethods.IPK_GetListAST(NativeHandle, index, out element));
-            return new AST { NativeHandle = element };
+            return new AST(element);
         }
         public static AST CreateSymbol(string name)
         {
-            IntPtr ast = IntPtr.Zero;
+            IntPtr ast;
             IPK_BaseMethods.CheckResult(IPK_BaseMethods.IPK_CreateSymbolAST(name, out ast));
-            return new AST { NativeHandle = ast };
+            return new AST(ast);
         }
-        public static AST CreateList(IEnumerable<AST> elements)
+        public static AST CreateList(Size_t len, IntPtr[] elements)
         {
-            IntPtr ast = IntPtr.Zero;
-            var elementHandles = elements.Select(e => e.NativeHandle).ToArray();
-            IPK_BaseMethods.CheckResult(IPK_BaseMethods.IPK_CreateListAST((Size_t)elementHandles.Length, elementHandles, out ast));
-            return new AST { NativeHandle = ast };
+            IntPtr ast;
+            IPK_BaseMethods.CheckResult(IPK_BaseMethods.IPK_CreateListAST(len, elements, out ast));
+            return new AST(ast);
         }
 
         public bool Equals(AST? other)
@@ -55,16 +58,16 @@ namespace illusion.CoreLogic.Kernel
 
         public AST Clone()
         {
-            IntPtr ast = IntPtr.Zero;
+            IntPtr ast;
             IPK_BaseMethods.CheckResult(IPK_BaseMethods.IPK_CloneAST(NativeHandle, out ast));
-            return new AST { NativeHandle = ast };
+            return new AST(ast);
         }
 
         public static AST Parse(string line)
         {
-            IntPtr ast = IntPtr.Zero;
+            IntPtr ast;
             IPK_BaseMethods.CheckResult(IPK_BaseMethods.IPK_ParseStatement(line, out ast));
-            return new AST { NativeHandle = ast };
+            return new AST(ast);
         }
 
         public override string ToString()

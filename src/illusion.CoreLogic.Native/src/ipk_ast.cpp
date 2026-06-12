@@ -1,61 +1,65 @@
-#include "ipk_ast.h"
 #include <sstream>
 #include <iostream>
 #include <string>
+#include <functional>
+#include "ipk_ast.h"
 
-API_EXPORT IPK_RESULT IPK_CreateSymbolAST(String_Handle name, AST_Handle* out_ast) {
+API_EXPORT IPK_RESULT IPK_AST_CreateSymbol(IPK_String name, IPK_AST_Handle* out_ast) {
     if (!name || !out_ast) {
         return IPK_ERROR_INVALID_ARGUMENT;
     }
     
-    AST_Handle node = Entity<AST_Node>();
+    IPK_AST_Handle node = NewObject<IPK_AST_Node>();
     if (!node) {
         return IPK_ERROR_OUT_OF_MEMORY;
     }
 
-    node->type = AST_NODE_SYMBOL;
-    node->data.symbol = strdup(name);
+    node->type = IPK_AST_NODE_SYMBOL;
+    node->data.symbol = name;
 
     if (!node->data.symbol) {
-        FreeEntity(node);
+        DestroyObject(node);
         return IPK_ERROR_OUT_OF_MEMORY;
     }
     *out_ast = node;
     return IPK_SUCCESS;
 }
 
-API_EXPORT IPK_RESULT IPK_CreateListAST(size_t length, AST_Handle* elements, AST_Handle* out_ast) {
+API_EXPORT IPK_RESULT IPK_AST_CreateList(size_t length, IPK_AST_Handle* elements, IPK_AST_Handle* out_ast) {
     if ((length > 0 && !elements) || !out_ast) {
         return IPK_ERROR_INVALID_ARGUMENT;
     }
 
-    AST_Handle node = Entity<AST_Node>();
+    IPK_AST_Handle node = NewObject<IPK_AST_Node>();
     if (!node) {
         return IPK_ERROR_OUT_OF_MEMORY;
     }
 
-    node->type = AST_NODE_LIST;
+    node->data.list.elements = NewObject<IPK_AST_Handle>(length);
+    if (!node->data.list.elements) {
+        DestroyObject(node);
+        return IPK_ERROR_OUT_OF_MEMORY;
+    }
+
+    node->type = IPK_AST_NODE_LIST;
     node->data.list.length = length;
-    if (length > 0) {
-        node->data.list.elements = Entity<AST_Handle>(length);
-        if (!node->data.list.elements) {
-            FreeEntity(node);
-            node = nullptr;
-            return IPK_ERROR_OUT_OF_MEMORY;
+    for (size_t i = 0; i < length; i++) {
+        IPK_AST_Clone(elements[i], &node->data.list.elements[i]);
+        if (res != IPK_SUCCESS) {
+            for (size_t j = 0; j < i; j++) {
+                IPK_AST_Destroy(elements[j]);
+            }
+            DestroyObject(elements);
+            DestroyObject(node);
+            return res;
         }
-        for (size_t i = 0; i < length; i++) {
-            node->data.list.elements[i] = elements[i];
-        }
-    } else {
-        node->data.list.elements = nullptr;
-	}
+    }
 
     *out_ast = node;
     return IPK_SUCCESS;
 }
 
-API_EXPORT IPK_RESULT IPK_GetTypeAST(AST_Handle ast, AST_NodeType* out_type)
-{
+API_EXPORT IPK_RESULT IPK_AST_GetType(IPK_AST_Handle ast, IPK_AST_NodeType* out_type) {
     if (!ast || !out_type) {
 		return IPK_ERROR_INVALID_ARGUMENT;
     }
@@ -63,70 +67,70 @@ API_EXPORT IPK_RESULT IPK_GetTypeAST(AST_Handle ast, AST_NodeType* out_type)
     return IPK_SUCCESS;
 }
 
-API_EXPORT IPK_RESULT IPK_GetSymbolAST(AST_Handle ast, String_Handle* out_name)
-{
+API_EXPORT IPK_RESULT IPK_AST_GetSymbol(IPK_AST_Handle ast, IPK_String* out_name) {
     if (!ast || !out_name) {
         return IPK_ERROR_INVALID_ARGUMENT;
 	}
-    if (ast->type != AST_NODE_SYMBOL) {
+    if (ast->type != IPK_AST_NODE_SYMBOL) {
         return IPK_ERROR_INVALID_ARGUMENT;
 	}
     *out_name = ast->data.symbol;
     return IPK_SUCCESS;
 }
 
-API_EXPORT IPK_RESULT IPK_GetListAST(AST_Handle ast, size_t index, AST_Handle* out_element)
-{
+API_EXPORT IPK_RESULT IPK_AST_GetList(IPK_AST_Handle ast, size_t index, IPK_AST_Handle* out_element) {
     if (!ast || !out_element) {
         return IPK_ERROR_INVALID_ARGUMENT;
     }
-    if (ast->type != AST_NODE_LIST) {
+    if (ast->type != IPK_AST_NODE_LIST) {
+        return IPK_ERROR_INVALID_ARGUMENT;
+    }
+    if (ast->data.list.length <= index) {
         return IPK_ERROR_INVALID_ARGUMENT;
     }
 	*out_element = ast->data.list.elements[index];
     return IPK_SUCCESS;
 }
 
-API_EXPORT IPK_RESULT IPK_CloneAST(AST_Handle ast, AST_Handle* out_ast) {
+API_EXPORT IPK_RESULT IPK_AST_Clone(IPK_AST_Handle ast, IPK_AST_Handle* out_ast) {
     if (!ast || !out_ast) {
         return IPK_ERROR_INVALID_ARGUMENT;
     }
 
-    SwitchASTNodeType(ast->type, {
-        return IPK_CreateSymbolAST(ast->data.symbol, out_ast);
+    IPK_AST_SwitchNodeType(ast->type, {
+        return IPK_AST_CreateSymbol(ast->data.symbol, out_ast);
     }, {
         size_t length = ast->data.list.length;
-        AST_Handle* elements = nullptr;
-        if (length > 0) {
-            elements = Entity<AST_Handle>(length);
-            if (!elements) {
-                return IPK_ERROR_OUT_OF_MEMORY;
-            }
-            for (size_t i = 0; i < length; i++) {
-                res = IPK_CloneAST(ast->data.list.elements[i], &elements[i]);
-                if (res != IPK_SUCCESS) {
-                    for (size_t j = 0; j < i; j++) {
-                        IPK_FreeAST(elements[j]);
-                    }
-                    FreeEntity(elements);
-                    return res;
+
+        IPK_AST_Handle* elements = NewObject<IPK_AST_Handle>(length);
+        if (!elements) {
+            return IPK_ERROR_OUT_OF_MEMORY;
+        }
+
+        for (size_t i = 0; i < length; i++) {
+            res = IPK_AST_Clone(ast->data.list.elements[i], &elements[i]);
+            if (res != IPK_SUCCESS) {
+                for (size_t j = 0; j < i; j++) {
+                    IPK_AST_Destroy(elements[j]);
                 }
+                DestroyObject(elements);
+                return res;
             }
         }
 
-        res = IPK_CreateListAST(length, elements, out_ast);
+        res = IPK_AST_CreateList(length, elements, out_ast);
         if (res != IPK_SUCCESS) {
             for (size_t i = 0; i < length; i++) {
-                IPK_FreeAST(elements[i]);
+                IPK_AST_Destroy(elements[i]);
             }
-            FreeEntity(elements);
+            DestroyObject(elements);
             return res;
         }
         return IPK_SUCCESS;
     });
 }
 
-API_EXPORT bool IPK_EqualAST(AST_Handle a, AST_Handle b) {
+API_EXPORT bool IPK_AST_Equal(IPK_AST_Handle a, IPK_AST_Handle b) {
     if (!a && !b) {
         return true;
     }
@@ -137,14 +141,14 @@ API_EXPORT bool IPK_EqualAST(AST_Handle a, AST_Handle b) {
         return false;
     }
 
-    SwitchASTNodeType(a->type, {
+    IPK_AST_SwitchNodeType(a->type, {
         return strcmp(a->data.symbol, b->data.symbol) == 0;
     }, {
         if (a->data.list.length != b->data.list.length) {
             return false;
         }
         for (size_t i = 0; i < a->data.list.length; i++) {
-            if (!IPK_EqualAST(a->data.list.elements[i], b->data.list.elements[i])) {
+            if (!IPK_AST_Equal(a->data.list.elements[i], b->data.list.elements[i])) {
                 return false;
             }
         }
@@ -152,48 +156,48 @@ API_EXPORT bool IPK_EqualAST(AST_Handle a, AST_Handle b) {
     });
 }
 
-API_EXPORT void IPK_FreeAST(AST_Handle ast) {
+API_EXPORT void IPK_AST_Destroy(IPK_AST_Handle ast) {
     if (!ast) {
         return;
     }
-    SwitchASTNodeType(ast->type, {
+    IPK_AST_SwitchNodeType(ast->type, {
         //free(ast->data.symbol);
-        FreeEntity(ast);
+        DestroyObject(ast);
     }, {
         for (size_t i = 0; i < ast->data.list.length; i++) {
-            IPK_FreeAST(ast->data.list.elements[i]);
+            IPK_AST_Destroy(ast->data.list.elements[i]);
         }
-        FreeEntity(ast->data.list.elements);
-        FreeEntity(ast);
+        DestroyObject(ast->data.list.elements);
+        DestroyObject(ast);
         return;
     });
 }
 
-void IPK_MakeString(AST_Handle ast, size_t indent, std::ostream& os) {
-    if (!ast) {
-        return;
+API_EXPORT IPK_RESULT IPK_AST_ToString(IPK_AST_Handle ast, IPK_String* out_str) {
+    if (!out_str) {
+        return IPK_ERROR_NULL_POINTER;
     }
-    for (size_t i = 0; i < indent; i++) {
-        os << "  ";
-	}
-    SwitchASTNodeType(ast->type, {
-        os << "Symbol: " << ast->data.symbol << std::endl;
-    }, {
-		os << "List: length=" << ast->data.list.length << std::endl;
-        for (size_t i = 0; i < ast->data.list.length; i++) {
-            IPK_MakeString(ast->data.list.elements[i], indent + 1, os);
-        }
-    });
-}
 
-API_EXPORT void IPK_ToStringAST(AST_Handle ast, String_Handle* out_str) {
     std::ostringstream oss{};
-    IPK_MakeString(ast, 0, oss);
-    *out_str = strdup(oss.str().c_str());
-}
 
-API_EXPORT void IPK_PrintAST(AST_Handle ast) {
-    String_Handle str;
-    IPK_ToStringAST(ast, &str);
-    printf("%s", str);
+    std::function<void(IPK_AST_Handle, size_t)> IPK_MakeString;
+    IPK_MakeString = [&](IPK_AST_Handle ast, size_t indent) -> void {
+        if (!ast) {
+            return;
+        }
+        for (size_t i = 0; i < indent; i++) {
+            oss << "  ";
+        }
+        IPK_AST_SwitchNodeType(ast->type, {
+            oss << TEXT("Symbol: ") << ast->data.symbol << TEXT('\n');
+            }, {
+                oss << TEXT("List: length=") << ast->data.list.length << TEXT('\n');
+                for (size_t i = 0; i < ast->data.list.length; i++) {
+                    IPK_MakeString(ast->data.list.elements[i], indent + 1);
+                }
+            });
+        };
+    IPK_MakeString(ast, 0);
+    *out_str = strdup(oss.str().c_str());
+    return IPK_SUCCESS;
 }

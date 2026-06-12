@@ -1,12 +1,12 @@
-#include "ipk_kernel.h"
+#include "ipk_prover.h"
 #include <queue>
 #include <vector>
 
-API_EXPORT IPK_RESULT IPK_VerifyProof(Context_Handle context, ProofDAG_Handle proof_dag, bool* out_is_valid) {
+API_EXPORT IPK_RESULT IPK_VerifyProof(IPK_Context_Handle context, IPK_ProofDAG_Handle proof_dag, bool* out_is_valid) {
 	if (!context || !proof_dag || !out_is_valid) {
 		return IPK_ERROR_NULL_POINTER;
 	}
-	std::vector<ProofNode_Handle> topological_order;
+	std::vector<IPK_ProofNode_Handle> topological_order;
 	std::vector<int> in_degree(proof_dag->node_count, 0);
 	std::queue<size_t> q;
 	for (size_t i = 0; i < proof_dag->node_count; i++) {
@@ -29,10 +29,10 @@ API_EXPORT IPK_RESULT IPK_VerifyProof(Context_Handle context, ProofDAG_Handle pr
 	}
 	return IPK_ERROR;
 }
-API_EXPORT void IPK_FreeProofDAG(ProofDAG_Handle proof_dag) {
+API_EXPORT void IPK_FreeProofDAG(IPK_ProofDAG_Handle proof_dag) {
 	if (!proof_dag) {
 		return;
 	}
 	free(proof_dag->nodes);
-	FreeEntity(proof_dag);
+	DestroyObject(proof_dag);
 }

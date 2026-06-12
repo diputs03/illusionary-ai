@@ -11,7 +11,9 @@ typedef enum LexState LexState;
 #ifdef __cplusplus
 extern "C" {
 #endif
-    API_EXPORT IPK_RESULT IPK_ParseStatement(String_Handle s_expression, AST_Handle* out_ast);
+
+    API_EXPORT IPK_RESULT IPK_ParseStatement(IPK_String s_expression, IPK_AST_Handle* out_ast);
+
 #ifdef __cplusplus
 }
 #endif

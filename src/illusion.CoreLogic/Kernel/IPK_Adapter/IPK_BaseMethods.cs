@@ -4,7 +4,7 @@ using System.Reflection.Metadata;
 using System.Runtime.InteropServices;
 using System.Security;
 
-namespace illusion.CoreLogic.Kernel
+namespace illusion.Kernel.IPK_Adapter
 {
     [SuppressUnmanagedCodeSecurity]
     internal static class IPK_BaseMethods
@@ -13,13 +13,16 @@ namespace illusion.CoreLogic.Kernel
 
         #region IPK_Common
         [DllImport(DllName, CallingConvention = CallingConvention.Cdecl, CharSet = CharSet.Ansi)]
-        internal static extern string IPK_GetErrorMessage([In] IPK_RESULT errorCode);
+        internal static extern string IPK_GetErrorMessage(IPK_RESULT errorCode);
+
+        [DllImport(DllName, CallingConvention = CallingConvention.Cdecl, CharSet = CharSet.Ansi)]
+        internal static extern IPK_RESULT IPK_MakeString(string str, out IntPtr out_str);
 
         internal static void CheckResult(IPK_RESULT result)
         {
             if (result != IPK_RESULT.IPK_SUCCESS)
             {
-                var errorMessage = IPK_GetErrorMessage(result);
+                string errorMessage = IPK_GetErrorMessage(result);
                 throw new IAException<IPK_RESULT>(errorMessage);
             }
         }
@@ -98,24 +101,13 @@ namespace illusion.CoreLogic.Kernel
         internal static extern void IPK_DestroyContext(IntPtr context);
 
         [DllImport(DllName, CallingConvention = CallingConvention.Cdecl, CharSet = CharSet.Ansi)]
-        internal static extern IPK_RESULT IPK_ContextAddAxiom(IntPtr context,
-                                                         string name,
-                                                         string statement,
-                                                         out Index_t outAxiomId);
+        internal static extern IPK_RESULT IPK_ContextAddAxiom(IntPtr context, Index_t axiomId, IntPtr statement);
+
         [DllImport(DllName, CallingConvention = CallingConvention.Cdecl, CharSet = CharSet.Ansi)]
-        internal static extern IPK_RESULT IPK_ContextGetAxiom(IntPtr context, Index_t axiomId,
-                                                         out IntPtr outStatement);
-        
-        [DllImport(DllName, CallingConvention = CallingConvention.Cdecl, CharSet = CharSet.Ansi)]
-        internal static extern IPK_RESULT IPK_ContextAddRule(IntPtr context, string name,
-                                                         string statement, Size_t premiseCount,
-                                                         IntPtr premiseIds, out Index_t outRuleId);
-        [DllImport(DllName, CallingConvention = CallingConvention.Cdecl, CharSet = CharSet.Ansi)]
-        internal static extern IPK_RESULT IPK_ContextGetRule(IntPtr context, string ruleName,
-                                                         out IntPtr outRule);
+        internal static extern IPK_RESULT IPK_ContextAddRule(IntPtr context, Index_t ruleId, IntPtr rule);
         #endregion
 
-        #region IPK_Kernel
+        #region IPK_Prover
         [DllImport(DllName, CallingConvention = CallingConvention.Cdecl)]
         internal static extern IPK_RESULT IPK_VerifyProof(IntPtr context, IntPtr proofDag,
                                                             out bool outIsValid);

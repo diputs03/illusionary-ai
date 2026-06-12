@@ -4,11 +4,11 @@ enum LexState {
     LEX_STATE_NORMAL,
     LEX_STATE_IN_SYMBOL
 };
-static String_Handle current_pos;
+static IPK_String current_pos;
 static LexState state;
 static std::vector<Char> current_symbol;
 
-static void lex_reset(String_Handle input) {
+static void lex_reset(IPK_String input) {
     current_pos = input;
     state = LEX_STATE_NORMAL;
     current_symbol.clear();
@@ -57,14 +57,14 @@ static int lex_next_token() {
     return 0; // EOF
 }
 
-API_EXPORT IPK_RESULT IPK_ParseStatement(String_Handle s_expression, AST_Handle* out_ast) {
+API_EXPORT IPK_RESULT IPK_ParseStatement(IPK_String s_expression, IPK_AST_Handle* out_ast) {
     if (!s_expression) {
         return IPK_ERROR_NULL_POINTER;
     }
 
     lex_reset(s_expression);
 
-    std::stack<std::vector<AST_Handle>> parse_stack;
+    std::stack<std::vector<IPK_AST_Handle>> parse_stack;
 	int depth = 0;
 
     auto cleanup_error = [&]() {
@@ -72,26 +72,26 @@ API_EXPORT IPK_RESULT IPK_ParseStatement(String_Handle s_expression, AST_Handle*
             auto elements = parse_stack.top();
             parse_stack.pop();
             for (auto elem : elements) {
-                IPK_FreeAST(elem);
+                IPK_AST_Destroy(elem);
             }
         }
 
         if (!*out_ast) {
-            IPK_FreeAST(*out_ast);
+            IPK_AST_Destroy(*out_ast);
         }
     };
 
-    auto makelist = [&](std::vector<AST_Handle>& elements) -> AST_Handle {
-        AST_Handle* elements_array = nullptr;
+    auto makelist = [&](std::vector<IPK_AST_Handle>& elements) -> IPK_AST_Handle {
+        IPK_AST_Handle* elements_array = nullptr;
         if (!elements.empty()) {
-            elements_array = Entity<AST_Handle>(elements.size());
+            elements_array = NewObject<IPK_AST_Handle>(elements.size());
             for (size_t i = 0; i < elements.size(); i++) {
                 elements_array[i] = elements[i];
             }
         }
 
-        AST_Handle list_node;
-        res = IPK_CreateListAST(elements.size(), elements_array, &list_node);
+        IPK_AST_Handle list_node;
+        res = IPK_AST_CreateList(elements.size(), elements_array, &list_node);
 
         delete[] elements_array;
         return list_node;
@@ -100,7 +100,7 @@ API_EXPORT IPK_RESULT IPK_ParseStatement(String_Handle s_expression, AST_Handle*
     int token;
     while ((token = lex_next_token()) != 0) {
         if (token == '(') {
-            parse_stack.push(std::vector<AST_Handle>());
+            parse_stack.push(std::vector<IPK_AST_Handle>());
 			depth++;
         }
         else if (token == ')') {
@@ -114,19 +114,19 @@ API_EXPORT IPK_RESULT IPK_ParseStatement(String_Handle s_expression, AST_Handle*
             parse_stack.pop();
 
             if (parse_stack.empty()) {
-				parse_stack.push(std::vector<AST_Handle>());
+				parse_stack.push(std::vector<IPK_AST_Handle>());
             }
             parse_stack.top().push_back(makelist(elements));
         }
         else if (token == '$') {
-            AST_Handle symbol_node;
-            res = IPK_CreateSymbolAST(current_symbol.data(), &symbol_node);
+            IPK_AST_Handle symbol_node;
+            res = IPK_AST_CreateSymbol(current_symbol.data(), &symbol_node);
             if (res != IPK_SUCCESS) {
                 cleanup_error();
                 return IPK_ERROR_INVALID_ARGUMENT;
             }
             if (parse_stack.empty()) {
-                parse_stack.push(std::vector<AST_Handle>());
+                parse_stack.push(std::vector<IPK_AST_Handle>());
             }
             parse_stack.top().push_back(symbol_node);
         }

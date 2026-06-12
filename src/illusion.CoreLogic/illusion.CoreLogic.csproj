@@ -14,10 +14,5 @@
 	<ItemGroup>
 		<ProjectReference Include="..\illusion.Common\illusion.Common.csproj" />
 	</ItemGroup>
-	
-	<Target Name="CopyNativeDll" AfterTargets="Build">
-		<ItemGroup><NativeDllFiles Include="$(CppBuildDir)bin\$(CppConfiguration)\*" /></ItemGroup>
-		<Copy SourceFiles="@(NativeDllFiles)" DestinationFolder="$(OutputPath)" OverwriteReadOnlyFiles="true" SkipUnchangedFiles="true" />
-	</Target>
 
 </Project>
