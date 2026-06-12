@@ -27,9 +27,9 @@ namespace illusion.Kernel.IPK_Adapter
         }
         public string Symbol()
         {
-            string symbol;
+            IntPtr symbol;
             IPK_BaseMethods.CheckResult(IPK_BaseMethods.IPK_GetSymbolAST(NativeHandle, out symbol));
-            return symbol;
+            return Marshal.PtrToStringAnsi(symbol) ?? string.Empty;
         }
         public AST List(Size_t index)
         {
@@ -72,15 +72,25 @@ namespace illusion.Kernel.IPK_Adapter
 
         public override string ToString()
         {
-            string str;
-            IPK_BaseMethods.IPK_ToStringAST(NativeHandle, out str);
-            return str;
+            IntPtr str;
+            IPK_BaseMethods.CheckResult(IPK_BaseMethods.IPK_ToStringAST(NativeHandle, out str));
+            try
+            {
+                return Marshal.PtrToStringAnsi(str) ?? string.Empty;
+            }
+            finally
+            {
+                IPK_BaseMethods.IPK_FreeString(str);
+            }
         }
 
         ~AST()
         {
-            IPK_BaseMethods.IPK_FreeAST(NativeHandle);
-            NativeHandle = IntPtr.Zero;
+            if (NativeHandle != IntPtr.Zero)
+            {
+                IPK_BaseMethods.IPK_FreeAST(NativeHandle);
+                NativeHandle = IntPtr.Zero;
+            }
         }
     }
 }

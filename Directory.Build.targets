@@ -1,71 +1,51 @@
 <Project>
+  <PropertyGroup>
+    <CppProjectDir>$(MSBuildThisFileDirectory)src/illusion.CoreLogic.Native/</CppProjectDir>
+    <CppBuildDir>$(CppProjectDir)build/$(Configuration)/</CppBuildDir>
+    <CppConfiguration>$(Configuration)</CppConfiguration>
+    <NativeDllSourceDir>$(MSBuildThisFileDirectory)artifacts/bin/illusion.CoreLogic.Native/$(CppConfiguration)/</NativeDllSourceDir>
+  </PropertyGroup>
+
+  <Target Name="BuildNativeCpp" BeforeTargets="BeforeBuild">
+    <ItemGroup>
+      <_CoreLogicReferences Include="@(ProjectReference)" Condition="'%(Filename)%(Extension)' == 'illusion.CoreLogic.csproj'" />
+    </ItemGroup>
     <PropertyGroup>
-        
-        <CppProjectDir>$(MSBuildThisFileDirectory)src\illusion.CoreLogic.Native\</CppProjectDir>
-        <CppBuildDir>$(CppProjectDir)build\</CppBuildDir>
-        <CppConfiguration>$(Configuration)</CppConfiguration>
-        
-        <HostArchitecture Condition="'$(PROCESSOR_ARCHITECTURE)' == 'AMD64'">x64</HostArchitecture>
-        <HostArchitecture Condition="'$(PROCESSOR_ARCHITECTURE)' == 'ARM64'">ARM64</HostArchitecture>
-	    <HostArchitecture Condition="'$(PROCESSOR_ARCHITECTURE)' == 'IA64'">IA64</HostArchitecture>
-        <CppPlatform>$(HostArchitecture)</CppPlatform>
-        
-        <NativeDllSourceDir>$(MSBuildThisFileDirectory)artifacts\bin\illusion.CoreLogic.Native\$(CppConfiguration)\</NativeDllSourceDir>
+      <_IsCoreLogicProject>false</_IsCoreLogicProject>
+      <_IsCoreLogicProject Condition="'$(MSBuildProjectName)' == 'illusion.CoreLogic'">true</_IsCoreLogicProject>
+      <_ReferencesCoreLogic>false</_ReferencesCoreLogic>
+      <_ReferencesCoreLogic Condition="'@(_CoreLogicReferences)' != ''">true</_ReferencesCoreLogic>
+      <_ShouldExecute>false</_ShouldExecute>
+      <_ShouldExecute Condition="$(_IsCoreLogicProject)">true</_ShouldExecute>
+      <_CMakeGenerator>Ninja</_CMakeGenerator>
+      <_CMakeGenerator Condition="'$(OS)' == 'Windows_NT'">Visual Studio 17 2022</_CMakeGenerator>
+      <_CMakeConfigureCommand Condition="'$(OS)' == 'Windows_NT'">cmake -S &quot;$(CppProjectDir)&quot; -B &quot;$(CppBuildDir)&quot; -G &quot;$(_CMakeGenerator)&quot; -A x64</_CMakeConfigureCommand>
+      <_CMakeConfigureCommand Condition="'$(OS)' != 'Windows_NT'">cmake -S &quot;$(CppProjectDir)&quot; -B &quot;$(CppBuildDir)&quot; -G &quot;$(_CMakeGenerator)&quot; -DCMAKE_BUILD_TYPE=$(CppConfiguration)</_CMakeConfigureCommand>
     </PropertyGroup>
 
+    <Message Importance="high" Text="Building illusion.CoreLogic native C++ code ($(CppConfiguration))..." Condition="$(_ShouldExecute)" />
+    <MakeDir Directories="$(CppBuildDir)" Condition="$(_ShouldExecute)" />
+    <Exec Command="$(_CMakeConfigureCommand)" Condition="$(_ShouldExecute) AND !Exists('$(CppBuildDir)CMakeCache.txt')" />
+    <Exec Command="cmake --build &quot;$(CppBuildDir)&quot; --config $(CppConfiguration)" Condition="$(_ShouldExecute)" />
+    <Message Importance="high" Text="illusion.CoreLogic native C++ build completed." Condition="$(_ShouldExecute)" />
+  </Target>
 
-	<Target Name="BuildNativeCpp" BeforeTargets="BeforeBuild">
-        <ItemGroup>
-            <_CoreLogicReferences 
-                Include="@(ProjectReference)" 
-                Condition="'%(Filename)%(Extension)' == 'illusion.CoreLogic.csproj'" />
-        </ItemGroup>
-        <PropertyGroup>
-            <_IsCoreLogicProject>false</_IsCoreLogicProject>
-            <_IsCoreLogicProject Condition="'$(MSBuildProjectName)' == 'illusion.CoreLogic'">true</_IsCoreLogicProject>
-            
-            <_ReferencesCoreLogic>false</_ReferencesCoreLogic>
-            <_ReferencesCoreLogic Condition="'@(_CoreLogicReferences)' != ''">true</_ReferencesCoreLogic>
-            
-            <_ShouldExecute>false</_ShouldExecute>
-            <_ShouldExecute Condition="$(_IsCoreLogicProject) OR $(_ReferencesCoreLogic)">true</_ShouldExecute>
-        </PropertyGroup>
-		<Message Importance="high" Text="Building illusion.CoreLogic native C++ code..." />
-		
-        <MakeDir Directories="$(CppBuildDir)" Condition="$(_ShouldExecute)" />
-
-		<Exec Command="cmake -G &quot;Visual Studio 17 2022&quot; -A $(CppPlatform) .."
-            WorkingDirectory="$(CppBuildDir)"
-            Condition="!Exists('$(CppBuildDir)CMakeCache.txt') AND $(_ShouldExecute)" />
-		
-        <Exec Command="cmake --build . --config $(CppConfiguration)"
-            WorkingDirectory="$(CppBuildDir)"
-            Condition="$(_ShouldExecute)" />
-		<Message Importance="high" Text="illusion.CoreLogic native C++ build completed." />
-	</Target>
-
-    <Target Name="CopyNativeDll" AfterTargets="BuildNativeCpp" BeforeTargets="Build">
-        <ItemGroup>
-            <_CoreLogicReferences 
-                Include="@(ProjectReference)" 
-                Condition="'%(Filename)%(Extension)' == 'illusion.CoreLogic.csproj'" />
-        </ItemGroup>
-        <PropertyGroup>
-            <_IsCoreLogicProject>false</_IsCoreLogicProject>
-            <_IsCoreLogicProject Condition="'$(MSBuildProjectName)' == 'illusion.CoreLogic'">true</_IsCoreLogicProject>
-            
-            <_ReferencesCoreLogic>false</_ReferencesCoreLogic>
-            <_ReferencesCoreLogic Condition="'@(_CoreLogicReferences)' != ''">true</_ReferencesCoreLogic>
-            
-            <_ShouldExecute>false</_ShouldExecute>
-            <_ShouldExecute Condition="$(_IsCoreLogicProject) OR $(_ReferencesCoreLogic)">true</_ShouldExecute>
-        </PropertyGroup>
-        <Message Importance="high" Text="Copying native dll" />
-
-        <ItemGroup Condition="$(_ShouldExecute)">
-            <NativeDllFiles Include="$(NativeDllSourceDir)*.*" />
-        </ItemGroup>
-
-        <Copy SourceFiles="@(NativeDllFiles)" DestinationFolder="$(OutputPath)" SkipUnchangedFiles="true" Condition="$(_ShouldExecute)"/>
-    </Target>
+  <Target Name="CopyNativeDll" AfterTargets="BuildNativeCpp" BeforeTargets="Build">
+    <ItemGroup>
+      <_CoreLogicReferences Include="@(ProjectReference)" Condition="'%(Filename)%(Extension)' == 'illusion.CoreLogic.csproj'" />
+    </ItemGroup>
+    <PropertyGroup>
+      <_IsCoreLogicProject>false</_IsCoreLogicProject>
+      <_IsCoreLogicProject Condition="'$(MSBuildProjectName)' == 'illusion.CoreLogic'">true</_IsCoreLogicProject>
+      <_ReferencesCoreLogic>false</_ReferencesCoreLogic>
+      <_ReferencesCoreLogic Condition="'@(_CoreLogicReferences)' != ''">true</_ReferencesCoreLogic>
+      <_ShouldExecute>false</_ShouldExecute>
+      <_ShouldExecute Condition="$(_IsCoreLogicProject) OR $(_ReferencesCoreLogic)">true</_ShouldExecute>
+    </PropertyGroup>
+    <ItemGroup Condition="$(_ShouldExecute)">
+      <NativeDllFiles Include="$(NativeDllSourceDir)*.*" />
+    </ItemGroup>
+    <Message Importance="high" Text="Copying native library from $(NativeDllSourceDir) to $(OutputPath)" Condition="$(_ShouldExecute)" />
+    <Copy SourceFiles="@(NativeDllFiles)" DestinationFolder="$(OutputPath)" SkipUnchangedFiles="true" Condition="$(_ShouldExecute) AND '@(NativeDllFiles)' != ''" />
+  </Target>
 </Project>

@@ -75,12 +75,12 @@ Illusionary-AI solves these problems by abandoning the statistical generation pa
 |-------|------------|---------|
 | **Core Application Layer** | C# .NET 8 | Primary development stack for all core modules, enterprise-grade service layer, and CLI tooling |                                                          |
 | **Cross-Language Interop** | Standard C ABI | Universal interface layer for seamless communication between C# and native C++ components |
-| **Build System** | CMake 3.25+ | Native C++ project build configuration |
+| **Build System** | CMake 3.22+ / Ninja or Visual Studio | Cross-platform native C++ build configuration |
 | **Configuration** | YAML | Human-readable, hierarchical system configuration |
-| **Serialization** | MessagePack | High-performance, cross-language consistent serialization |
+| **Serialization** | System.Text.Json UTF-8 bytes | Safe platform serializer for core deterministic artifacts |
 | **Structured Logging** | Serilog | Production-grade logging with multiple sink support |
 | **Testing Framework** | xUnit | Unit, integration, and end-to-end testing for .NET components |
-| **Web Gateway** | ASP.NET Core 8 | High-performance REST API for service deployments |
+| **Gateway CLI** | .NET console app | Local deterministic reasoning and diagnostics entry point |
 
 ---
 
@@ -92,13 +92,13 @@ Illusionary-AI solves these problems by abandoning the statistical generation pa
   - Desktop Development with C++
   - ASP.NET and Web Development
 - **.NET 8 SDK** (included with Visual Studio 2022)
-- **CMake 3.25+** (included with Visual Studio 2022 C++ workload)
+- **CMake 3.22+** (included with Visual Studio 2022 C++ workload)
 - **Git for Windows**
 
 #### Linux / macOS
 - .NET 8 SDK
 - GCC 11+ / Clang 14+
-- CMake 3.25+
+- CMake 3.22+
 - Git
 - Visual Studio Code with C# Dev Kit and C/C++ Extension Pack
 
@@ -124,6 +124,33 @@ Illusionary-AI solves these problems by abandoning the statistical generation pa
       ```
 
 ---
+
+### Current Implemented MVP Capabilities
+- Canonical immutable `E(O)` expression and object model with deterministic value equality.
+- In-memory state and constraint verification that accept only axioms or verified conclusions.
+- Deterministic analytical prover with direct axiom checks, bounded Horn-rule forward chaining, variable binding, and auditable proof traces.
+- Constructive C# artifact generator that emits code only after a successful proof trace.
+- Native IPK parser/AST interop smoke tests and a local CLI for configuration diagnostics, direct proof checks, constructive C# emission, and encrypted UPP record access.
+- Local User Private Plane file store with AES-256-GCM authenticated encryption and passphrase-based key derivation.
+- Global Ground Truth Plane module verifier for RSA-signed read-only modules.
+
+
+
+### Solution Project Layout
+Illusionary-AI is split into independently testable .NET projects:
+
+| Project | Responsibility |
+|---------|----------------|
+| `illusion.Common` | Shared constants, canonical `E(O)` types, configuration, crypto, logging, and serialization utilities. |
+| `illusion.CoreLogic` | Deterministic proof model, analytical prover, formal rules, proof traces, and native IPK adapter. |
+| `illusion.Memory` | Local encrypted User Private Plane storage and signed Global Ground Truth Plane module verification. |
+| `illusion.Parser` | Strict parser for canonical formal expressions and rule declarations. |
+| `illusion.Generator` | Constructive generation that emits artifacts only from successful proof traces. |
+| `illusion.MetaStrategy` | Deterministic action planning over formally verified constraints. |
+| `illusion.Gateway` | Host-agnostic application service boundary for proof, generation, and memory operations. |
+| `illusion.Gateway.CLI` | Console host for local diagnostics and deterministic workflows. |
+
+Each production project has a corresponding test project under `tests/csharp-unit`.
 
 ## 🏗️ System Architecture
 Illusionary-AI uses a strictly layered, unidirectional dependency architecture to ensure logical integrity and modularity.

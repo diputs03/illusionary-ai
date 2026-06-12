@@ -12,7 +12,7 @@ API_EXPORT IPK_RESULT IPK_Rule_Create(IPK_String name, size_t premise_count,
 		return IPK_ERROR_OUT_OF_MEMORY;
 	}
 
-	rule->name = strdup(name);
+	rule->name = ipk_strdup(name);
 	if (!rule->name) {
 		DestroyObject(rule);
 		return IPK_ERROR_OUT_OF_MEMORY;
@@ -22,7 +22,7 @@ API_EXPORT IPK_RESULT IPK_Rule_Create(IPK_String name, size_t premise_count,
 	if (premise_count > 0) {
 		rule->premises = NewObject<IPK_AST_Handle>(premise_count);
 		if (!rule->premises) {
-			//free(rule->name);
+			free(rule->name);
 			DestroyObject(rule);
 			return IPK_ERROR_OUT_OF_MEMORY;
 		}
@@ -33,7 +33,7 @@ API_EXPORT IPK_RESULT IPK_Rule_Create(IPK_String name, size_t premise_count,
 					IPK_AST_Destroy(rule->premises[j]);
 				}
 				DestroyObject(rule->premises);
-				//free(rule->name);
+				free(rule->name);
 				DestroyObject(rule);
 				return IPK_ERROR_OUT_OF_MEMORY;
 			}
@@ -41,7 +41,16 @@ API_EXPORT IPK_RESULT IPK_Rule_Create(IPK_String name, size_t premise_count,
 	} else {
 		rule->premises = nullptr;
 	}
-	rule->conclusion = conclusion;
+	IPK_RESULT res = IPK_AST_Clone(conclusion, &rule->conclusion);
+	if (res != IPK_SUCCESS) {
+		for (size_t j = 0; j < premise_count; j++) {
+			IPK_AST_Destroy(rule->premises[j]);
+		}
+		DestroyObject(rule->premises);
+		free(rule->name);
+		DestroyObject(rule);
+		return res;
+	}
 	return IPK_SUCCESS;
 }
 
@@ -50,7 +59,7 @@ API_EXPORT IPK_RESULT IPK_Rule_Apply(IPK_Rule_Handle rule, IPK_AST_Handle* premi
 		return IPK_ERROR_NULL_POINTER;
 	}
 	IPK_Sub_Handle sub;
-	res = IPK_Sub_Create(&sub);
+	IPK_RESULT res = IPK_Sub_Create(&sub);
 	if (res != IPK_SUCCESS) {
 		return res;
 	}
@@ -70,9 +79,11 @@ API_EXPORT void IPK_Rule_Destroy(IPK_Rule_Handle rule) {
 	if (!rule) {
 		return;
 	}
-	//free(rule->name);
+	free(rule->name);
 	for (size_t i = 0; i < rule->premise_count; i++) {
 		IPK_AST_Destroy(rule->premises[i]);
 	}
+	DestroyObject(rule->premises);
+	IPK_AST_Destroy(rule->conclusion);
 	DestroyObject(rule);
 }

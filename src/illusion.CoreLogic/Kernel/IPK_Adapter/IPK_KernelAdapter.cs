@@ -65,9 +65,16 @@ public class IPK_KernelAdapter : IKernelAdapter
     }
     public void PrintAST(IntPtr ast)
     {
-        string str;
-        IPK_BaseMethods.IPK_ToStringAST(ast, out str);
-        Console.WriteLine(str);
+        IntPtr str;
+        IPK_BaseMethods.CheckResult(IPK_BaseMethods.IPK_ToStringAST(ast, out str));
+        try
+        {
+            Console.WriteLine(System.Runtime.InteropServices.Marshal.PtrToStringAnsi(str) ?? string.Empty);
+        }
+        finally
+        {
+            IPK_BaseMethods.IPK_FreeString(str);
+        }
     }
     public void FreeAST(IntPtr ast)
     {

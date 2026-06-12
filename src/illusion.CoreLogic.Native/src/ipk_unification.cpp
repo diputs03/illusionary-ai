@@ -18,7 +18,7 @@ API_EXPORT IPK_RESULT IPK_Unify(IPK_AST_Handle pattern, IPK_AST_Handle term, IPK
 		return IPK_Sub_Add(sub, term->data.symbol, pattern);
 	}
 	if (pattern->type == IPK_AST_NODE_SYMBOL && term->type == IPK_AST_NODE_SYMBOL) {
-		if (strcmp(pattern->data.symbol, term->data.symbol) == 0) {
+		if (ipk_strcmp(pattern->data.symbol, term->data.symbol) == 0) {
 			return IPK_SUCCESS;
 		} else {
 			return IPK_ERROR_UNIFICATION_FAILED;
@@ -29,7 +29,7 @@ API_EXPORT IPK_RESULT IPK_Unify(IPK_AST_Handle pattern, IPK_AST_Handle term, IPK
 			return IPK_ERROR_UNIFICATION_FAILED;
 		}
 		for (size_t i = 0; i < pattern->data.list.length; i++) {
-			res = IPK_Unify(pattern->data.list.elements[i], term->data.list.elements[i], sub);
+			IPK_RESULT res = IPK_Unify(pattern->data.list.elements[i], term->data.list.elements[i], sub);
 			if (res != IPK_SUCCESS) {
 				return res;
 			}

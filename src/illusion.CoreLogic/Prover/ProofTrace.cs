@@ -3,40 +3,53 @@ using illusion.Common.Types;
 namespace illusion.CoreLogic.Prover;
 
 /// <summary>
-/// complete proof trace for a single proof attempt, including all steps, results, and metadata.
+/// Complete proof trace for a single proof attempt, including all steps, results,
+/// timings, and error metadata.
 /// </summary>
-public class ProofTrace
+public sealed class ProofTrace
 {
     public string TraceId { get; }
-    public Common.Types.Expression TargetProposition { get; }
+    public Expression TargetProposition { get; }
     public bool IsSuccess { get; }
     public IReadOnlyList<ProofStep> Steps { get; }
     public long ElapsedMilliseconds { get; }
     public string? ErrorMessage { get; }
 
-    public ProofTrace(string traceId, Common.Types.Expression targetProposition, bool isSuccess,
+    public ProofTrace(string traceId, Expression targetProposition, bool isSuccess,
         IEnumerable<ProofStep> steps, long elapsedMilliseconds, string? errorMessage = null)
     {
-        TraceId = traceId;
-        TargetProposition = targetProposition;
+        if (string.IsNullOrWhiteSpace(traceId))
+            throw new IAException<ArgumentException>("trace id cannot be empty");
+
+        TraceId = traceId.Trim();
+        TargetProposition = targetProposition ?? throw new IAException<ArgumentNullException>(nameof(targetProposition));
         IsSuccess = isSuccess;
-        Steps = steps.ToList().AsReadOnly();
+        Steps = (steps ?? throw new IAException<ArgumentNullException>(nameof(steps))).ToList().AsReadOnly();
         ElapsedMilliseconds = elapsedMilliseconds;
         ErrorMessage = errorMessage;
     }
 }
-public class ProofStep
+
+public sealed class ProofStep
 {
     public int StepNumber { get; }
     public string RuleName { get; }
-    public Common.Types.Expression StepExpression { get; }
+    public Expression StepExpression { get; }
+    public IReadOnlyList<int> PremiseStepNumbers { get; }
     public string? Description { get; }
 
-    public ProofStep(int stepNumber, string ruleName, Common.Types.Expression stepExpression, string? description = null)
+    public ProofStep(int stepNumber, string ruleName, Expression stepExpression, string? description = null,
+        IEnumerable<int>? premiseStepNumbers = null)
     {
+        if (stepNumber <= 0)
+            throw new IAException<ArgumentOutOfRangeException>("proof step number must be positive");
+        if (string.IsNullOrWhiteSpace(ruleName))
+            throw new IAException<ArgumentException>("rule name cannot be empty");
+
         StepNumber = stepNumber;
-        RuleName = ruleName;
-        StepExpression = stepExpression;
+        RuleName = ruleName.Trim();
+        StepExpression = stepExpression ?? throw new IAException<ArgumentNullException>(nameof(stepExpression));
+        PremiseStepNumbers = (premiseStepNumbers ?? Array.Empty<int>()).ToList().AsReadOnly();
         Description = description;
     }
 }
