@@ -5,6 +5,9 @@
     <Nullable>enable</Nullable>
   </PropertyGroup>
   <ItemGroup>
+    <PackageReference Include="Microsoft.ML" />
+  </ItemGroup>
+  <ItemGroup>
     <ProjectReference Include="..\illusion.Common\illusion.Common.csproj" />
     <ProjectReference Include="..\illusion.CoreLogic\illusion.CoreLogic.csproj" />
   </ItemGroup>

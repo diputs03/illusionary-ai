@@ -6,5 +6,6 @@
   </PropertyGroup>
   <ItemGroup>
     <ProjectReference Include="..\illusion.Common\illusion.Common.csproj" />
+    <ProjectReference Include="..\illusion.CoreLogic\illusion.CoreLogic.csproj" />
   </ItemGroup>
 </Project>
