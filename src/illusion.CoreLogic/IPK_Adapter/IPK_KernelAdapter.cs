@@ -5,6 +5,7 @@ using illusion.Common.Utils;
 using illusion.CoreLogic.Prover;
 using System.Text.Json;
 using illusion.CoreLogic.Kernel;
+using System.Text.RegularExpressions;
 
 namespace illusion.IPK_Adapter;
 
@@ -58,6 +59,30 @@ public class IPK_KernelAdapter : IKernelAdapter
         nint ast;
         IPK_BaseMethods.CheckResult(IPK_BaseMethods.IPK_ParseStatement(statement, out ast));
         return ast;
+    }
+    public Statement CreateStatement(string canonicalText)
+    {
+        var ast = ParseStatement(canonicalText);
+        return new Statement(canonicalText, ast, DestroyStatement);
+    }
+    public void DestroyStatement(Statement statement)
+    {
+        ArgumentNullException.ThrowIfNull(statement);
+        if (statement.NativeHandle != nint.Zero)
+            FreeAST(statement.NativeHandle);
+    }
+    public Statement ParseRegularExpression(string expression)
+    {
+        ArgumentNullException.ThrowIfNull(expression);
+        _ = new Regex(expression, RegexOptions.CultureInvariant, TimeSpan.FromSeconds(1));
+        return CreateStatement(expression);
+    }
+    public string ToCanonicalString(Statement statement)
+    {
+        ArgumentNullException.ThrowIfNull(statement);
+        if (statement.IsDestroyed)
+            throw new ObjectDisposedException(nameof(Statement));
+        return statement.ToString();
     }
     public bool EqualAST(nint a, nint b)
     {

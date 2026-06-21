@@ -75,4 +75,10 @@ public record GraphEdge
     /// </summary>
     public static GraphEdge Contradicts(string a, string b)
         => new() { FromId = a, ToId = b, Type = "Contradicts", Label = "⊥" };
+
+    public static GraphEdge PremiseOf(string premiseId, string proofId)
+        => new() { FromId = premiseId, ToId = proofId, Type = "PremiseOf", Label = "premise" };
+
+    public static GraphEdge Concludes(string proofId, string conclusionId)
+        => new() { FromId = proofId, ToId = conclusionId, Type = "Concludes", Label = "conclusion" };
 }

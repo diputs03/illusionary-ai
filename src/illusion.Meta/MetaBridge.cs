@@ -21,9 +21,9 @@ public sealed record MetaBridgeResult(bool Success, Statement? Statement, string
 /// </summary>
 public sealed class MetaBridge
 {
-    private readonly IStatementKernel _kernel;
+    private readonly IKernelAdapter _kernel;
 
-    public MetaBridge(IStatementKernel kernel) => _kernel = kernel ?? throw new ArgumentNullException(nameof(kernel));
+    public MetaBridge(IKernelAdapter kernel) => _kernel = kernel ?? throw new ArgumentNullException(nameof(kernel));
 
     public MetaBridgeResult Promote(Statement statement)
     {

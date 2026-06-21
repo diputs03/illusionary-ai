@@ -1,5 +1,6 @@
 using System.Collections.Frozen;
 using System.Text.Json.Serialization;
+using illusion.CoreLogic.Kernel;
 
 namespace illusion.CoreLogic.Graph;
 
@@ -69,4 +70,16 @@ public record GraphNode
     /// </summary>
     public static GraphNode Axiom(string name)
         => new() { Id = $"axiom:{name}", Type = "Axiom", Label = name };
+
+    /// <summary>
+    /// Convention-based factory for a kernel statement node.
+    /// </summary>
+    public static GraphNode Statement(string id, Statement statement)
+        => new() { Id = id, Type = "Statement", Label = statement.ToString() };
+
+    /// <summary>
+    /// Convention-based factory for a proof node connecting premises to one conclusion.
+    /// </summary>
+    public static GraphNode Proof(string id, string ruleName)
+        => new() { Id = id, Type = "Proof", Label = ruleName };
 }
