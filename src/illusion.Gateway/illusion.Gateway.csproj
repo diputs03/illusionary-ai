@@ -1,0 +1,14 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <TargetFramework>net8.0</TargetFramework>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <Nullable>enable</Nullable>
+  </PropertyGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\illusion.Common\illusion.Common.csproj" />
+    <ProjectReference Include="..\illusion.CoreLogic\illusion.CoreLogic.csproj" />
+    <ProjectReference Include="..\illusion.Generator\illusion.Generator.csproj" />
+    <ProjectReference Include="..\illusion.Memory\illusion.Memory.csproj" />
+    <ProjectReference Include="..\illusion.Parser\illusion.Parser.csproj" />
+  </ItemGroup>
+</Project>

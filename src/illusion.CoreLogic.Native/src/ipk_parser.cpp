@@ -58,10 +58,11 @@ static int lex_next_token() {
 }
 
 API_EXPORT IPK_RESULT IPK_ParseStatement(IPK_String s_expression, IPK_AST_Handle* out_ast) {
-    if (!s_expression) {
+    if (!s_expression || !out_ast) {
         return IPK_ERROR_NULL_POINTER;
     }
 
+    *out_ast = nullptr;
     lex_reset(s_expression);
 
     std::stack<std::vector<IPK_AST_Handle>> parse_stack;
@@ -76,8 +77,9 @@ API_EXPORT IPK_RESULT IPK_ParseStatement(IPK_String s_expression, IPK_AST_Handle
             }
         }
 
-        if (!*out_ast) {
+        if (out_ast && *out_ast) {
             IPK_AST_Destroy(*out_ast);
+            *out_ast = nullptr;
         }
     };
 
@@ -91,7 +93,7 @@ API_EXPORT IPK_RESULT IPK_ParseStatement(IPK_String s_expression, IPK_AST_Handle
         }
 
         IPK_AST_Handle list_node;
-        res = IPK_AST_CreateList(elements.size(), elements_array, &list_node);
+        IPK_RESULT res = IPK_AST_CreateList(elements.size(), elements_array, &list_node);
 
         delete[] elements_array;
         return list_node;
@@ -120,7 +122,7 @@ API_EXPORT IPK_RESULT IPK_ParseStatement(IPK_String s_expression, IPK_AST_Handle
         }
         else if (token == '$') {
             IPK_AST_Handle symbol_node;
-            res = IPK_AST_CreateSymbol(current_symbol.data(), &symbol_node);
+            IPK_RESULT res = IPK_AST_CreateSymbol(current_symbol.data(), &symbol_node);
             if (res != IPK_SUCCESS) {
                 cleanup_error();
                 return IPK_ERROR_INVALID_ARGUMENT;
@@ -140,6 +142,9 @@ API_EXPORT IPK_RESULT IPK_ParseStatement(IPK_String s_expression, IPK_AST_Handle
         cleanup_error();
         return IPK_ERROR_INVALID_ARGUMENT;
     }
+    if (parse_stack.empty()) {
+        return IPK_ERROR_SYNTAX_ERROR;
+    }
     *out_ast = makelist(parse_stack.top());
-    return IPK_SUCCESS;
+    return *out_ast ? IPK_SUCCESS : IPK_ERROR_OUT_OF_MEMORY;
 }

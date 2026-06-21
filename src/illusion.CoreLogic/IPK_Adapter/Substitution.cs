@@ -4,7 +4,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace illusion.Kernel.IPK_Adapter
+namespace illusion.IPK_Adapter
 {
     public class Substitution
     {

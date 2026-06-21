@@ -15,7 +15,7 @@ API_EXPORT IPK_RESULT IPK_AST_CreateSymbol(IPK_String name, IPK_AST_Handle* out_
     }
 
     node->type = IPK_AST_NODE_SYMBOL;
-    node->data.symbol = name;
+    node->data.symbol = ipk_strdup(name);
 
     if (!node->data.symbol) {
         DestroyObject(node);
@@ -44,12 +44,12 @@ API_EXPORT IPK_RESULT IPK_AST_CreateList(size_t length, IPK_AST_Handle* elements
     node->type = IPK_AST_NODE_LIST;
     node->data.list.length = length;
     for (size_t i = 0; i < length; i++) {
-        IPK_AST_Clone(elements[i], &node->data.list.elements[i]);
+        IPK_RESULT res = IPK_AST_Clone(elements[i], &node->data.list.elements[i]);
         if (res != IPK_SUCCESS) {
             for (size_t j = 0; j < i; j++) {
-                IPK_AST_Destroy(elements[j]);
+                IPK_AST_Destroy(node->data.list.elements[j]);
             }
-            DestroyObject(elements);
+            DestroyObject(node->data.list.elements);
             DestroyObject(node);
             return res;
         }
@@ -97,37 +97,41 @@ API_EXPORT IPK_RESULT IPK_AST_Clone(IPK_AST_Handle ast, IPK_AST_Handle* out_ast)
         return IPK_ERROR_INVALID_ARGUMENT;
     }
 
-    IPK_AST_SwitchNodeType(ast->type, {
+    if (ast->type == IPK_AST_NODE_SYMBOL) {
         return IPK_AST_CreateSymbol(ast->data.symbol, out_ast);
-    }, {
-        size_t length = ast->data.list.length;
+    }
 
-        IPK_AST_Handle* elements = NewObject<IPK_AST_Handle>(length);
-        if (!elements) {
+    IPK_AST_Handle node = NewObject<IPK_AST_Node>();
+    if (!node) {
+        return IPK_ERROR_OUT_OF_MEMORY;
+    }
+
+    node->type = IPK_AST_NODE_LIST;
+    node->data.list.length = ast->data.list.length;
+    node->data.list.elements = nullptr;
+
+    if (node->data.list.length > 0) {
+        node->data.list.elements = NewObject<IPK_AST_Handle>(node->data.list.length);
+        if (!node->data.list.elements) {
+            DestroyObject(node);
             return IPK_ERROR_OUT_OF_MEMORY;
         }
 
-        for (size_t i = 0; i < length; i++) {
-            res = IPK_AST_Clone(ast->data.list.elements[i], &elements[i]);
+        for (size_t i = 0; i < node->data.list.length; i++) {
+            IPK_RESULT res = IPK_AST_Clone(ast->data.list.elements[i], &node->data.list.elements[i]);
             if (res != IPK_SUCCESS) {
                 for (size_t j = 0; j < i; j++) {
-                    IPK_AST_Destroy(elements[j]);
+                    IPK_AST_Destroy(node->data.list.elements[j]);
                 }
-                DestroyObject(elements);
+                DestroyObject(node->data.list.elements);
+                DestroyObject(node);
                 return res;
             }
         }
+    }
 
-        res = IPK_AST_CreateList(length, elements, out_ast);
-        if (res != IPK_SUCCESS) {
-            for (size_t i = 0; i < length; i++) {
-                IPK_AST_Destroy(elements[i]);
-            }
-            DestroyObject(elements);
-            return res;
-        }
-        return IPK_SUCCESS;
-    });
+    *out_ast = node;
+    return IPK_SUCCESS;
 }
 
 API_EXPORT bool IPK_AST_Equal(IPK_AST_Handle a, IPK_AST_Handle b) {
@@ -142,7 +146,7 @@ API_EXPORT bool IPK_AST_Equal(IPK_AST_Handle a, IPK_AST_Handle b) {
     }
 
     IPK_AST_SwitchNodeType(a->type, {
-        return strcmp(a->data.symbol, b->data.symbol) == 0;
+        return ipk_strcmp(a->data.symbol, b->data.symbol) == 0;
     }, {
         if (a->data.list.length != b->data.list.length) {
             return false;
@@ -161,7 +165,7 @@ API_EXPORT void IPK_AST_Destroy(IPK_AST_Handle ast) {
         return;
     }
     IPK_AST_SwitchNodeType(ast->type, {
-        //free(ast->data.symbol);
+        free(ast->data.symbol);
         DestroyObject(ast);
     }, {
         for (size_t i = 0; i < ast->data.list.length; i++) {
@@ -198,6 +202,6 @@ API_EXPORT IPK_RESULT IPK_AST_ToString(IPK_AST_Handle ast, IPK_String* out_str) 
             });
         };
     IPK_MakeString(ast, 0);
-    *out_str = strdup(oss.str().c_str());
+    *out_str = ipk_strdup(oss.str().c_str());
     return IPK_SUCCESS;
 }

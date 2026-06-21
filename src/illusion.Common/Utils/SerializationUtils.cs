@@ -1,25 +1,30 @@
-﻿using MessagePack;
+﻿using System.Text.Json;
 
 namespace illusion.Common.Utils;
 
 /// <summary>
-/// fast serialization utils
+/// Safe serialization utilities using the .NET platform serializer. The methods
+/// preserve the original byte[] contract while avoiding third-party serializer
+/// vulnerabilities in the trusted core path.
 /// </summary>
 public static class SerializationUtils
 {
-    static SerializationUtils()
+    private static readonly JsonSerializerOptions Options = new(JsonSerializerDefaults.General)
     {
-        // global MessagePack configuration: compatible with cross-language, secure
-        MessagePackSerializer.DefaultOptions = MessagePackSerializer.DefaultOptions
-            .WithResolver(MessagePack.Resolvers.StandardResolver.Instance)
-            .WithCompression(MessagePackCompression.Lz4BlockArray);
-    }
+        PropertyNamingPolicy = JsonNamingPolicy.CamelCase,
+        WriteIndented = false
+    };
+
     public static byte[] Serialize<T>(T obj)
     {
-        return MessagePackSerializer.Serialize(obj);
+        ArgumentNullException.ThrowIfNull(obj);
+        return JsonSerializer.SerializeToUtf8Bytes(obj, Options);
     }
+
     public static T Deserialize<T>(byte[] data)
     {
-        return MessagePackSerializer.Deserialize<T>(data);
+        ArgumentNullException.ThrowIfNull(data);
+        return JsonSerializer.Deserialize<T>(data, Options)
+            ?? throw new InvalidOperationException($"failed to deserialize {typeof(T).FullName}");
     }
 }
