@@ -1,6 +1,6 @@
 using illusion.Common.Types;
 
-namespace illusion.MetaStrategy;
+namespace illusion.Meta;
 
 /// <summary>
 /// Small deterministic planner that selects actions whose constraints are already

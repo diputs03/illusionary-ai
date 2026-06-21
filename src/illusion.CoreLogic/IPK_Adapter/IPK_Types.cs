@@ -1,7 +1,7 @@
 global using Index_t = System.Int64;
 global using Size_t = nuint;
 
-namespace illusion.Kernel.IPK_Adapter
+namespace illusion.IPK_Adapter
 {
     internal enum IPK_RESULT
     {

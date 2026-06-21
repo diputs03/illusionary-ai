@@ -10,7 +10,6 @@ namespace illusion.Parser.NaturalLanguage;
 public sealed class NaturalLanguageFormalizer
 {
     private readonly EnglishSyntaxParser _syntaxParser = new();
-    private readonly WordEmbeddingIndex _embeddingIndex = new();
 
     /// <summary>
     /// Convert a natural English sentence to a formal Expression.
@@ -100,7 +99,7 @@ public sealed class NaturalLanguageFormalizer
     private string CanonicalizePredicate(string predicate)
     {
         var canonicalPredicates = new[] { "Human", "Mortal", "Animal", "Wise", "Living", "Person", "Philosopher" };
-        return _embeddingIndex.FindClosestPredicate(predicate, canonicalPredicates);
+        return WordEmbeddingIndex.FindClosestPredicate(predicate, canonicalPredicates);
     }
 
     private List<Expression> ExtractRulePremises(string premiseText)
@@ -138,7 +137,7 @@ public sealed class NaturalLanguageFormalizer
     /// </summary>
     public float GetSemanticSimilarity(string word1, string word2)
     {
-        return _embeddingIndex.Similarity(word1, word2);
+        return (float)WordEmbeddingIndex.Similarity(word1, word2);
     }
 
     /// <summary>
@@ -210,8 +209,8 @@ public sealed class NaturalLanguageFormalizer
             "Doctor", "Teacher", "Student", "Engineer"
         };
 
-        var matched = _embeddingIndex.FindClosestPredicate(rawPredicate, canonicalPredicates);
-        var similarity = _embeddingIndex.Similarity(rawPredicate, matched);
+        var matched = WordEmbeddingIndex.FindClosestPredicate(rawPredicate, canonicalPredicates);
+        var similarity = (float)WordEmbeddingIndex.Similarity(rawPredicate, matched);
 
         if (similarity < 0.5f)
         {

@@ -5,7 +5,7 @@ using System.Runtime.InteropServices;
 using illusion.Common.Types;
 
 
-namespace illusion.Kernel.IPK_Adapter
+namespace illusion.IPK_Adapter
 {
     public enum AST_NodeType
     {
@@ -14,8 +14,8 @@ namespace illusion.Kernel.IPK_Adapter
     }
     public class AST : IEquatable<AST>
     {
-        internal IntPtr NativeHandle { get; private set; }
-        public AST(IntPtr handle = default)
+        internal nint NativeHandle { get; private set; }
+        public AST(nint handle = default)
         {
             NativeHandle = handle;
         }
@@ -27,25 +27,25 @@ namespace illusion.Kernel.IPK_Adapter
         }
         public string Symbol()
         {
-            IntPtr symbol;
+            nint symbol;
             IPK_BaseMethods.CheckResult(IPK_BaseMethods.IPK_GetSymbolAST(NativeHandle, out symbol));
             return Marshal.PtrToStringAnsi(symbol) ?? string.Empty;
         }
         public AST List(Size_t index)
         {
-            IntPtr element;
+            nint element;
             IPK_BaseMethods.CheckResult(IPK_BaseMethods.IPK_GetListAST(NativeHandle, index, out element));
             return new AST(element);
         }
         public static AST CreateSymbol(string name)
         {
-            IntPtr ast;
+            nint ast;
             IPK_BaseMethods.CheckResult(IPK_BaseMethods.IPK_CreateSymbolAST(name, out ast));
             return new AST(ast);
         }
-        public static AST CreateList(Size_t len, IntPtr[] elements)
+        public static AST CreateList(Size_t len, nint[] elements)
         {
-            IntPtr ast;
+            nint ast;
             IPK_BaseMethods.CheckResult(IPK_BaseMethods.IPK_CreateListAST(len, elements, out ast));
             return new AST(ast);
         }
@@ -58,21 +58,21 @@ namespace illusion.Kernel.IPK_Adapter
 
         public AST Clone()
         {
-            IntPtr ast;
+            nint ast;
             IPK_BaseMethods.CheckResult(IPK_BaseMethods.IPK_CloneAST(NativeHandle, out ast));
             return new AST(ast);
         }
 
         public static AST Parse(string line)
         {
-            IntPtr ast;
+            nint ast;
             IPK_BaseMethods.CheckResult(IPK_BaseMethods.IPK_ParseStatement(line, out ast));
             return new AST(ast);
         }
 
         public override string ToString()
         {
-            IntPtr str;
+            nint str;
             IPK_BaseMethods.CheckResult(IPK_BaseMethods.IPK_ToStringAST(NativeHandle, out str));
             try
             {
@@ -86,10 +86,10 @@ namespace illusion.Kernel.IPK_Adapter
 
         ~AST()
         {
-            if (NativeHandle != IntPtr.Zero)
+            if (NativeHandle != nint.Zero)
             {
                 IPK_BaseMethods.IPK_FreeAST(NativeHandle);
-                NativeHandle = IntPtr.Zero;
+                NativeHandle = nint.Zero;
             }
         }
     }

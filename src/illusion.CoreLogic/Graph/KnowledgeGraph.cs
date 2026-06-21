@@ -14,6 +14,7 @@ public class KnowledgeGraph
     private readonly FrozenDictionary<string, List<GraphEdge>> _inEdges;   // to -> edges
 
     public IReadOnlyCollection<GraphNode> Nodes => _nodes.Values;
+    public IReadOnlyCollection<GraphEdge> Edges => _outEdges.Values.SelectMany(e => e).ToList();
     public int NodeCount => _nodes.Count;
     public int EdgeCount => _outEdges.Values.Sum(e => e.Count);
 
@@ -55,6 +56,24 @@ public class KnowledgeGraph
     /// </summary>
     public List<string> GetPredecessors(string nodeId)
         => GetInEdges(nodeId).Select(e => e.FromId).Distinct().ToList();
+
+    /// <summary>
+    /// Get in-degree (number of incoming edges)
+    /// </summary>
+    public int GetInDegree(string nodeId)
+        => GetInEdges(nodeId).Count;
+
+    /// <summary>
+    /// Get out-degree (number of outgoing edges)
+    /// </summary>
+    public int GetOutDegree(string nodeId)
+        => GetOutEdges(nodeId).Count;
+
+    /// <summary>
+    /// Check if graph contains a node with given ID
+    /// </summary>
+    public bool HasNode(string nodeId)
+        => _nodes.ContainsKey(nodeId);
 
     /// <summary>
     /// Builder for constructing immutable graphs
@@ -119,11 +138,11 @@ public class KnowledgeGraph
         {
             var color = node.Type switch
             {
-                NodeType.Object => "lightblue",
-                NodeType.Predicate => "lightgreen",
-                NodeType.Rule => "gold",
-                NodeType.Axiom => "orange",
-                NodeType.Contradiction => "red",
+                "Object" => "lightblue",
+                "Predicate" => "lightgreen",
+                "Rule" => "gold",
+                "Axiom" => "orange",
+                "Contradiction" => "red",
                 _ => "white"
             };
             sb.AppendLine($"  \"{node.Id}\" [label=\"{node.Label}\", fillcolor=\"{color}\"];");
@@ -135,9 +154,9 @@ public class KnowledgeGraph
             {
                 var style = edge.Type switch
                 {
-                    EdgeType.Implies => "color=blue, penwidth=2",
-                    EdgeType.Contradicts => "color=red, style=dashed",
-                    EdgeType.SubclassOf => "color=darkgreen",
+                    "Implies" => "color=blue, penwidth=2",
+                    "Contradicts" => "color=red, style=dashed",
+                    "SubclassOf" => "color=darkgreen",
                     _ => "color=gray"
                 };
                 sb.AppendLine($"  \"{edge.FromId}\" -> \"{edge.ToId}\" [label=\"{edge.Label}\", {style}];");

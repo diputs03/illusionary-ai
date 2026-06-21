@@ -112,7 +112,7 @@ public static class CycleDetector
         // Filter to only DerivedFrom edges (proof derivation)
         var derivationEdges = proofGraph.Nodes
             .SelectMany(n => proofGraph.GetOutEdges(n.Id))
-            .Where(e => e.Type == EdgeType.DerivedFrom)
+            .Where(e => e.Type == "DerivedFrom")
             .ToList();
 
         if (!derivationEdges.Any())

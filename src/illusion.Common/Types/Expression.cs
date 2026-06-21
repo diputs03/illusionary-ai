@@ -29,6 +29,10 @@ public sealed class Expression : IEquatable<Expression>
 
     public override bool Equals(object? obj) => Equals(obj as Expression);
 
+    public bool IsExtensionOf(Expression? other) =>
+        other is null
+        || (StringComparer.Ordinal.Equals(PredicateName, other.PredicateName) && TargetObject.Name.Contains(other.TargetObject.Name));
+
     public override int GetHashCode() => HashCode.Combine(
         StringComparer.Ordinal.GetHashCode(PredicateName),
         TargetObject);

@@ -14,6 +14,17 @@ public class DictionaryApiConnector
     {
         Timeout = TimeSpan.FromSeconds(10)
     };
+    
+    /// <summary>
+    /// Static singleton instance for global access
+    /// </summary>
+    public static DictionaryApiConnector Instance { get; } = new();
+    
+    /// <summary>
+    /// Static wrapper for FetchWordEntry
+    /// </summary>
+    public static Task<DictionaryWordEntry?> FetchWordEntry(string word)
+        => Instance.FetchWordEntryInternal(word);
 
     private const string FreeDictionaryApi = "https://api.dictionaryapi.dev/api/v2/entries/en/{0}";
     private const string WiktionaryApi = "https://en.wiktionary.org/api/rest_v1/page/definition/{0}";
@@ -22,7 +33,7 @@ public class DictionaryApiConnector
     /// Fetch complete dictionary entry from Free Dictionary API
     /// Returns all parts of speech, definitions, and examples for a word
     /// </summary>
-    public async Task<DictionaryWordEntry?> FetchWordEntry(string word)
+    private async Task<DictionaryWordEntry?> FetchWordEntryInternal(string word)
     {
         try
         {
@@ -99,7 +110,7 @@ public class DictionaryApiConnector
     /// </summary>
     public async Task<List<PartOfSpeech>> GetPossiblePartsOfSpeech(string word)
     {
-        var entry = await FetchWordEntry(word);
+        var entry = await FetchWordEntryInternal(word);
         return entry?.Meanings.Select(m => m.PartOfSpeech).Distinct().ToList() 
                ?? new List<PartOfSpeech>();
     }
@@ -118,7 +129,7 @@ public class DictionaryApiConnector
     /// </summary>
     public async Task<List<string>> GetDefinitions(string word, PartOfSpeech pos)
     {
-        var entry = await FetchWordEntry(word);
+        var entry = await FetchWordEntryInternal(word);
         return entry?.Meanings
                    .Where(m => m.PartOfSpeech == pos)
                    .SelectMany(m => m.Definitions.Select(d => d.Definition))
@@ -131,7 +142,7 @@ public class DictionaryApiConnector
     /// </summary>
     public async Task<List<string>> GetExamples(string word, PartOfSpeech pos)
     {
-        var entry = await FetchWordEntry(word);
+        var entry = await FetchWordEntryInternal(word);
         return entry?.Meanings
                    .Where(m => m.PartOfSpeech == pos)
                    .SelectMany(m => m.Definitions.Select(d => d.Example))
@@ -171,7 +182,7 @@ public class DictionaryApiConnector
         var result = new Dictionary<string, DictionaryWordEntry>();
         foreach (var word in words.Distinct())
         {
-            var entry = await FetchWordEntry(word);
+            var entry = await FetchWordEntryInternal(word);
             if (entry != null)
                 result[word] = entry;
             await Task.Delay(100); // Rate limiting

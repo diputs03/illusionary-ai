@@ -1,4 +1,4 @@
-namespace illusion.MetaStrategy;
+namespace illusion.Meta;
 
 public sealed class StrategyPlan
 {

@@ -8,4 +8,7 @@
     <ProjectReference Include="..\illusion.Common\illusion.Common.csproj" />
     <ProjectReference Include="..\illusion.CoreLogic\illusion.CoreLogic.csproj" />
   </ItemGroup>
+  <ItemGroup>
+    <PackageReference Include="System.Data.SQLite.Core" />
+  </ItemGroup>
 </Project>

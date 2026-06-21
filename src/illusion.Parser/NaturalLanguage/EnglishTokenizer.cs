@@ -1,86 +1,41 @@
 namespace illusion.Parser.NaturalLanguage;
 
 /// <summary>
-/// Deterministic English tokenizer and POS tagger.
-/// Uses exact dictionary lookup - no probabilistic ML, zero hallucination.
+/// Dynamic English tokenizer and POS tagger.
+/// NO HARDCODED WORDS - uses Dictionary API and dynamic polysemy resolution.
+/// Aligns with IPK design philosophy: all knowledge comes from rules, not baked-in data.
 /// </summary>
 public static class EnglishTokenizer
 {
-    #region Deterministic POS Dictionaries
+    private static readonly DynamicPolysemousDictionary _dictionary = new();
+    private static bool _initialized = false;
 
-    private static readonly HashSet<string> Copulas = new(StringComparer.OrdinalIgnoreCase)
+    /// <summary>
+    /// Initialize the tokenizer with dynamic dictionary.
+    /// Preloads common function words from API.
+    /// </summary>
+    public static async Task InitializeAsync()
     {
-        "is", "are", "was", "were", "be", "been", "being", "am"
-    };
-
-    private static readonly HashSet<string> Auxiliaries = new(StringComparer.OrdinalIgnoreCase)
-    {
-        "has", "have", "had", "do", "does", "did", "will", "would",
-        "shall", "should", "may", "might", "can", "could", "must"
-    };
-
-    private static readonly HashSet<string> Determiners = new(StringComparer.OrdinalIgnoreCase)
-    {
-        "a", "an", "the", "this", "that", "these", "those",
-        "my", "your", "his", "her", "its", "our", "their",
-        "some", "any", "each", "every", "all", "both", "few", "many"
-    };
-
-    private static readonly HashSet<string> Prepositions = new(StringComparer.OrdinalIgnoreCase)
-    {
-        "in", "on", "at", "by", "for", "with", "about", "against",
-        "between", "into", "through", "during", "before", "after",
-        "above", "below", "to", "from", "up", "down", "of", "off"
-    };
-
-    private static readonly HashSet<string> Pronouns = new(StringComparer.OrdinalIgnoreCase)
-    {
-        "i", "you", "he", "she", "it", "we", "they",
-        "me", "him", "her", "us", "them",
-        "who", "whom", "whose", "which", "what"
-    };
-
-    private static readonly HashSet<string> Conjunctions = new(StringComparer.OrdinalIgnoreCase)
-    {
-        "and", "but", "or", "nor", "so", "for", "yet",
-        "because", "since", "while", "although", "if", "when"
-    };
-
-    private static readonly HashSet<string> CommonNouns = new(StringComparer.OrdinalIgnoreCase)
-    {
-        "human", "person", "man", "woman", "child", "animal", "dog", "cat",
-        "mortal", "entity", "object", "thing", "concept", "idea", "fact",
-        "socrates", "plato", "aristotle", "alice", "bob", "charlie",
-        "philosopher", "student", "teacher", "doctor", "engineer"
-    };
-
-    private static readonly HashSet<string> CommonVerbs = new(StringComparer.OrdinalIgnoreCase)
-    {
-        "eat", "drink", "sleep", "walk", "run", "talk", "think", "know",
-        "love", "hate", "see", "hear", "feel", "become", "remain", "live", "die"
-    };
-
-    private static readonly HashSet<string> CommonAdjectives = new(StringComparer.OrdinalIgnoreCase)
-    {
-        "good", "bad", "big", "small", "happy", "sad", "old", "new",
-        "young", "ancient", "modern", "smart", "wise", "foolish",
-        "beautiful", "ugly", "true", "false", "valid", "invalid"
-    };
-
-    #endregion
+        if (_initialized) return;
+        await _dictionary.PreloadCommonWords();
+        _initialized = true;
+    }
 
     /// <summary>
     /// Deterministically tokenize and tag a sentence.
-    /// No guesswork - every token gets an exact tag based on dictionary lookup.
+    /// Uses dynamic dictionary API - no hardcoded words.
     /// </summary>
-    public static List<SyntaxTreeNode> TokenizeAndTag(string sentence)
+    public static async Task<List<SyntaxTreeNode>> TokenizeAndTagAsync(string sentence)
     {
+        if (!_initialized) await InitializeAsync();
+
         var tokens = Tokenize(sentence);
         var result = new List<SyntaxTreeNode>();
 
-        foreach (var token in tokens)
+        for (int i = 0; i < tokens.Count; i++)
         {
-            var pos = TagWord(token);
+            var token = tokens[i];
+            var pos = await _dictionary.DisambiguatePOS(token, tokens, i);
             result.Add(new SyntaxTreeNode(token, pos));
         }
 
@@ -88,49 +43,25 @@ public static class EnglishTokenizer
     }
 
     /// <summary>
+    /// Synchronous version for backward compatibility.
+    /// </summary>
+    public static List<SyntaxTreeNode> TokenizeAndTag(string sentence)
+    {
+        return TokenizeAndTagAsync(sentence).GetAwaiter().GetResult();
+    }
+
+    /// <summary>
     /// Simple deterministic tokenization - split on word boundaries.
     /// </summary>
     private static List<string> Tokenize(string sentence)
     {
-        // Remove punctuation and split
-        var cleaned = new string(sentence.Where(c => char.IsLetterOrDigit(c) || char.IsWhiteSpace(c) || c == '\'').ToArray());
-        return cleaned.Split(new[] { ' ', '\t', '\n', '\r' }, StringSplitOptions.RemoveEmptyEntries)
+        var cleaned = new string(sentence.Where(c => 
+            char.IsLetterOrDigit(c) || char.IsWhiteSpace(c) || c == '\'').ToArray());
+        
+        return cleaned.Split(new[] { ' ', '\t', '\n', '\r' }, 
+            StringSplitOptions.RemoveEmptyEntries)
             .Select(t => t.Trim())
             .Where(t => !string.IsNullOrEmpty(t))
             .ToList();
-    }
-
-    /// <summary>
-    /// Deterministic POS tagging with priority ordering.
-    /// Priority: Copula > Auxiliary > Determiner > Preposition > Pronoun > Conjunction > Noun > Verb > Adjective
-    /// </summary>
-    private static PartOfSpeech TagWord(string word)
-    {
-        var lower = word.ToLowerInvariant();
-
-        if (Copulas.Contains(lower)) return PartOfSpeech.Copula;
-        if (Auxiliaries.Contains(lower)) return PartOfSpeech.Auxiliary;
-        if (Determiners.Contains(lower)) return PartOfSpeech.Determiner;
-        if (Prepositions.Contains(lower)) return PartOfSpeech.Preposition;
-        if (Pronouns.Contains(lower)) return PartOfSpeech.Pronoun;
-        if (Conjunctions.Contains(lower)) return PartOfSpeech.Conjunction;
-        if (CommonNouns.Contains(lower)) return PartOfSpeech.Noun;
-        if (CommonVerbs.Contains(lower)) return PartOfSpeech.Verb;
-        if (CommonAdjectives.Contains(lower)) return PartOfSpeech.Adjective;
-
-        // Default: proper nouns (names) are treated as Noun
-        if (char.IsUpper(word[0])) return PartOfSpeech.Noun;
-
-        return PartOfSpeech.Unknown;
-    }
-
-    /// <summary>
-    /// Extend the vocabulary with domain-specific terms.
-    /// </summary>
-    public static void AddDomainVocabulary(IEnumerable<string> nouns, IEnumerable<string> verbs, IEnumerable<string> adjectives)
-    {
-        foreach (var n in nouns) CommonNouns.Add(n.ToLowerInvariant());
-        foreach (var v in verbs) CommonVerbs.Add(v.ToLowerInvariant());
-        foreach (var a in adjectives) CommonAdjectives.Add(a.ToLowerInvariant());
     }
 }

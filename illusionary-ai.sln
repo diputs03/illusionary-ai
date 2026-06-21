@@ -31,7 +31,7 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "illusion.Parser", "src\illu
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "illusion.Generator", "src\illusion.Generator\illusion.Generator.csproj", "{486A4448-C5EE-439F-80AE-538DDD9462BA}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "illusion.MetaStrategy", "src\illusion.MetaStrategy\illusion.MetaStrategy.csproj", "{7BE4CD17-0006-4670-BF57-40C391DAE7EA}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "illusion.Meta", "src\illusion.Meta\illusion.Meta.csproj", "{7BE4CD17-0006-4670-BF57-40C391DAE7EA}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "illusion.Gateway", "src\illusion.Gateway\illusion.Gateway.csproj", "{184AD754-DE24-447B-AA80-D9976CDD28D1}"
 EndProject
@@ -45,7 +45,7 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "illusion.Parser.Tests", "te
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "illusion.Generator.Tests", "tests\csharp-unit\illusion.Generator.Tests\illusion.Generator.Tests.csproj", "{CBCE1D2F-0871-409C-B1E9-EDE039A502B0}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "illusion.MetaStrategy.Tests", "tests\csharp-unit\illusion.MetaStrategy.Tests\illusion.MetaStrategy.Tests.csproj", "{13C13A2D-4B79-4AF7-A6B1-43CF4407CD04}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "illusion.Meta.Tests", "tests\csharp-unit\illusion.Meta.Tests\illusion.Meta.Tests.csproj", "{13C13A2D-4B79-4AF7-A6B1-43CF4407CD04}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "illusion.Gateway.Tests", "tests\csharp-unit\illusion.Gateway.Tests\illusion.Gateway.Tests.csproj", "{62D843D9-3EEB-4435-B7C1-D5C414CDBAED}"
 EndProject

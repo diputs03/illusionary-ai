@@ -1,6 +1,6 @@
 using illusion.Common.Types;
 
-namespace illusion.MetaStrategy.Tests;
+namespace illusion.Meta.Tests;
 
 public class DeterministicPlannerTests
 {

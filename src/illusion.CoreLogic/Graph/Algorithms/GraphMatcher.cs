@@ -189,7 +189,7 @@ public static class GraphMatcher
         foreach (var node in graph.Nodes)
         {
             foreach (var edge in graph.GetOutEdges(node.Id)
-                .Where(e => e.Type == EdgeType.Implies))
+                .Where(e => e.Type == "Implies"))
             {
                 results.Add((node.Id, edge.ToId));
             }
@@ -206,13 +206,13 @@ public static class GraphMatcher
     {
         var results = new List<ModusPensMatch>();
         var existingFacts = new HashSet<string>(graph.Nodes
-            .Where(n => n.Type is NodeType.Predicate or NodeType.Axiom)
+            .Where(n => n.Type is "Predicate" or "Axiom")
             .Select(n => n.Id));
 
         foreach (var fact in existingFacts)
         {
             foreach (var edge in graph.GetOutEdges(fact)
-                .Where(e => e.Type == EdgeType.Implies))
+                .Where(e => e.Type == "Implies"))
             {
                 var conclusion = edge.ToId;
                 if (!existingFacts.Contains(conclusion))

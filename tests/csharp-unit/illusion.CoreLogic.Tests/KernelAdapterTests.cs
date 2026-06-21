@@ -1,5 +1,5 @@
 using illusion.Common.Types;
-using illusion.Kernel.IPK_Adapter;
+using illusion.IPK_Adapter;
 using System.Linq.Expressions;
 using Xunit;
 

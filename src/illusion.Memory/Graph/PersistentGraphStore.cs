@@ -27,10 +27,10 @@ public class PersistentGraphStore : IDisposable
     public PersistentGraphStore(string dataDir)
     {
         _dataDir = dataDir;
-        _walPath = Path.Combine(dataDir, "graph.wal");
-        _snapshotDir = Path.Combine(dataDir, "snapshots");
+        _walPath = Path.Combine(_dataDir, "graph.wal");
+        _snapshotDir = Path.Combine(_dataDir, "snapshots");
 
-        Directory.CreateDirectory(dataDir);
+        Directory.CreateDirectory(_dataDir);
         Directory.CreateDirectory(_snapshotDir);
 
         // Recover from disk
@@ -257,6 +257,143 @@ public class PersistentGraphStore : IDisposable
         try { _writeTask.Wait(1000); } catch { }
         _cts.Dispose();
     }
+
+    #region GGTP / UPP Integration
+
+    /// <summary>
+    /// GGTP Pull: Download graph fragments from Global Ground Truth Plane
+    /// Merges remote nodes/edges into local graph
+    /// </summary>
+    public async Task GgtpPull(string ggtpEndpoint, string namespaceFilter = "")
+    {
+        // TODO: Implement actual GGTP protocol
+        // This is the interface placeholder - actual implementation will call GGTP API
+        
+        // Simulated: Pull high-importance nodes from global graph
+        var remoteNodes = await FetchRemoteNodes(ggtpEndpoint, namespaceFilter);
+        var remoteEdges = await FetchRemoteEdges(ggtpEndpoint, namespaceFilter);
+
+        foreach (var node in remoteNodes)
+        {
+            if (!_currentGraph.HasNode(node.Id))
+            {
+                AppendNode(node);
+            }
+        }
+
+        foreach (var edge in remoteEdges)
+        {
+            // Deduplicate edges
+            var existing = _currentGraph.GetOutEdges(edge.FromId)
+                .Any(e => e.ToId == edge.ToId && e.Type == edge.Type);
+            if (!existing)
+            {
+                AppendEdge(edge);
+            }
+        }
+    }
+
+    /// <summary>
+    /// UPP Push: Contribute local graph to User Private Plane
+    /// Only pushes nodes/edges created by this user
+    /// </summary>
+    public async Task UppPush(string uppEndpoint, string userNamespace)
+    {
+        // TODO: Implement actual UPP protocol
+        // This is the interface placeholder - actual implementation will call UPP API
+        
+        var localNodes = _currentGraph.Nodes
+            .Where(n => n.Id.StartsWith(userNamespace))
+            .ToList();
+        
+        var localEdges = _currentGraph.Nodes
+            .SelectMany(n => _currentGraph.GetOutEdges(n.Id))
+            .Where(e => e.FromId.StartsWith(userNamespace))
+            .Distinct()
+            .ToList();
+
+        await PushToUpp(uppEndpoint, localNodes, localEdges);
+    }
+
+    /// <summary>
+    /// Pull by importance level: Only download nodes with importance >= l
+    /// Efficient for large graphs - don't download everything
+    /// </summary>
+    public async Task GgtpPullByImportance(string ggtpEndpoint, double minImportance, string namespaceFilter = "")
+    {
+        var remoteGraph = await FetchRemoteGraphSummary(ggtpEndpoint, namespaceFilter);
+        
+        // Only pull nodes that meet importance threshold
+        foreach (var node in remoteGraph.Nodes)
+        {
+            // Calculate remote importance (or fetch from GGTP metadata)
+            var estimatedImportance = EstimateRemoteNodeImportance(node);
+            if (estimatedImportance >= minImportance)
+            {
+                if (!_currentGraph.HasNode(node.Id))
+                {
+                    AppendNode(node);
+                }
+            }
+        }
+
+        // Pull edges between downloaded nodes
+        foreach (var edge in remoteGraph.Edges)
+        {
+            if (_currentGraph.HasNode(edge.FromId) && _currentGraph.HasNode(edge.ToId))
+            {
+                var existing = _currentGraph.GetOutEdges(edge.FromId)
+                    .Any(e => e.ToId == edge.ToId && e.Type == edge.Type);
+                if (!existing)
+                {
+                    AppendEdge(edge);
+                }
+            }
+        }
+    }
+
+    #region GGTP/UPP Helpers (Internal)
+
+    private Task<List<GraphNode>> FetchRemoteNodes(string endpoint, string ns)
+    {
+        // TODO: Actual HTTP call to GGTP
+        return Task.FromResult(new List<GraphNode>());
+    }
+
+    private Task<List<GraphEdge>> FetchRemoteEdges(string endpoint, string ns)
+    {
+        // TODO: Actual HTTP call to GGTP
+        return Task.FromResult(new List<GraphEdge>());
+    }
+
+    private Task<(List<GraphNode> Nodes, List<GraphEdge> Edges)> FetchRemoteGraphSummary(string endpoint, string ns)
+    {
+        // TODO: Actual HTTP call to GGTP
+        return Task.FromResult((new List<GraphNode>(), new List<GraphEdge>()));
+    }
+
+    private Task PushToUpp(string endpoint, List<GraphNode> nodes, List<GraphEdge> edges)
+    {
+        // TODO: Actual HTTP call to UPP
+        return Task.CompletedTask;
+    }
+
+    private double EstimateRemoteNodeImportance(GraphNode remoteNode)
+    {
+        // GGTP should provide importance metadata
+        // For now, estimate based on node type
+        return remoteNode.Type switch
+        {
+            "Axiom" => 3.0,
+            "Rule" => 2.5,
+            "Predicate" => 2.0,
+            "Object" => 1.0,
+            _ => 0.5
+        };
+    }
+
+    #endregion
+    #endregion
 }
 
 #region Persistence Types

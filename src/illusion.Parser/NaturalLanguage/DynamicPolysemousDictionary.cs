@@ -24,7 +24,7 @@ public class DynamicPolysemousDictionary
         if (_cache.TryGetValue(key, out var cached))
             return cached;
 
-        var apiEntry = await _api.FetchWordEntry(word);
+        var apiEntry = await DictionaryApiConnector.FetchWordEntry(word);
         if (apiEntry == null)
             return null;
 
