@@ -1,12 +1,10 @@
-﻿using illusion.Common.Types;
-
 namespace illusion.Common.Types;
 
 /// <summary>
-/// Action constraints must be satisfied for an action
-/// executed (preconditions), hold after execution (postconditions), terminate (termination conditions).
+/// Action constraints must be satisfied for an action to execute (preconditions),
+/// hold after execution (postconditions), or terminate (termination conditions).
 /// </summary>
-public class Constraint
+public sealed class Constraint
 {
     public enum ConstraintType
     {
@@ -16,10 +14,10 @@ public class Constraint
     }
 
     public ConstraintType Type { get; }
-    public Types.Expression ConstraintExpression { get; }
+    public Expression ConstraintExpression { get; }
     public string Description { get; }
 
-    public Constraint(ConstraintType type, Types.Expression constraintExpression, string description = "")
+    public Constraint(ConstraintType type, Expression constraintExpression, string description = "")
     {
         Type = type;
         ConstraintExpression = constraintExpression ?? throw new IAException<ArgumentNullException>(nameof(constraintExpression));
@@ -27,14 +25,15 @@ public class Constraint
     }
 
     /// <summary>
-    /// verify if the constraint is satisfied in the given state
-    /// TODO: implement the actual verification logic
+    /// Deterministically verifies the constraint against a formal state. A
+    /// constraint is satisfied only when its expression has already been accepted
+    /// as an axiom or verified conclusion; no heuristic fallback is used.
     /// </summary>
     public bool Verify(State currentState)
     {
-        if (currentState == null)
+        if (currentState is null)
             throw new IAException<ArgumentNullException>(nameof(currentState));
-        // TODO: implement the actual verification logic
-        return true;
+
+        return currentState.ContainsFact(ConstraintExpression);
     }
 }

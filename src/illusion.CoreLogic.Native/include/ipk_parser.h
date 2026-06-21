@@ -6,7 +6,6 @@
 #include <cctype>
 #include <vector>
 #include <stack>
-typedef enum LexState LexState;
 
 #ifdef __cplusplus
 extern "C" {

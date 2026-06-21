@@ -14,7 +14,7 @@
 #define API_EXPORT __declspec(dllexport)
 #else
 #define API_IMPORT
-#define API_EXPORT
+#define API_EXPORT __attribute__((visibility("default")))
 #endif
 
 /*
@@ -24,10 +24,9 @@
 * RES & 0x20 -> INTERNET ERROR
 * RES & 0x40 -> MEMORY   ERROR
 */
-typedef enum IPK_RESULT IPK_RESULT;
-enum IPK_RESULT {
-    IPK_SUCCESS						=0x0000,
-    IPK_ERROR						=0x0001,
+typedef enum IPK_RESULT {
+    IPK_SUCCESS                     =0x0000,
+    IPK_ERROR                       =0x0001,
 
     IPK_ERROR_RUNTIME_ERROR         =0x0011,
     IPK_ERROR_INVALID_ARGUMENT      =0x0012,
@@ -42,19 +41,22 @@ enum IPK_RESULT {
     IPK_ERROR_MEMORY_ERROR          =0x0201,
     IPK_ERROR_NULL_POINTER          =0x0202,
     IPK_ERROR_OUT_OF_MEMORY         =0x0203,
-};
+} IPK_RESULT;
 
 #ifdef LONG_CHAR
 #define Char wchar_t
-#define strdup wcsdup
-#define strcmp wcscmp
+#define ipk_strdup wcsdup
+#define ipk_strcmp wcscmp
 #define ostringstream wostringstream
-#define strlen wcslen
+#define ipk_strlen wcslen
 #define TEXT(x) L ## x
 #else
 #define Char char
+#define ipk_strdup strdup
+#define ipk_strcmp strcmp
 #define TEXT(x) x
 #endif
+
 typedef Char* IPK_String;
 #define CSHARP_String const Char*
 
@@ -63,23 +65,22 @@ extern "C" {
 #endif
 
     API_EXPORT CSHARP_String IPK_GetErrorMessage(IPK_RESULT result);
+    API_EXPORT IPK_RESULT IPK_MakeString(CSHARP_String in, IPK_String* out);
+    API_EXPORT void IPK_FreeString(IPK_String str);
 
 #ifdef __cplusplus
 }
 #endif
 
-// there should be a memory pool to efficiently create entities.
+// TODO: Replace this with an arena allocator if AST allocation becomes a bottleneck.
 template<typename T>
 T* NewObject(size_t count = 1) noexcept {
-    return new (std::nothrow) T[count];
+    return new (std::nothrow) T[count]();
 }
+
 template<typename T>
 void DestroyObject(T* ptr) noexcept {
     delete[] ptr;
 }
-/*
-* Process checks should be based entire on the return result, for nonsuccessful results
-* the output pointers may not be set to valid values, and should not be used.
-*/
-static IPK_RESULT res;
+
 #endif // IPK_COMMON_H
