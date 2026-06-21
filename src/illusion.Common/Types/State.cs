@@ -1,11 +1,15 @@
-﻿namespace illusion.Common.Types;
+namespace illusion.Common.Types;
 
 /// <summary>
-/// global state of the system
-/// includes all objects, axioms, verified conclusions
+/// Global deterministic state of the system, including objects, axioms, and
+/// verified conclusions.
 /// </summary>
-public class State
+public sealed class State
 {
+    private readonly Dictionary<string, Object> _objects;
+    private readonly HashSet<Expression> _facts;
+    private readonly List<Expression> _verifiedConclusions;
+
     public enum StatePhase
     {
         Initial,
@@ -15,38 +19,51 @@ public class State
     }
 
     public StatePhase Phase { get; private set; }
-    public IReadOnlyDictionary<string, Types.Object> Objects { get; }
-    public IReadOnlyList<Types.Expression> Axioms { get; }
-    public IReadOnlyList<Types.Expression> VerifiedConclusions { get; private set; }
+    public IReadOnlyDictionary<string, Object> Objects => _objects.AsReadOnly();
+    public IReadOnlyList<Expression> Axioms { get; }
+    public IReadOnlyList<Expression> VerifiedConclusions => _verifiedConclusions.AsReadOnly();
     public DateTime CreatedAt { get; }
     public DateTime? UpdatedAt { get; private set; }
 
-    public State(IEnumerable<Types.Expression> axioms)
+    public State(IEnumerable<Expression> axioms)
     {
+        var axiomList = axioms?.ToList() ?? throw new IAException<ArgumentNullException>(nameof(axioms));
+
         Phase = StatePhase.Initial;
-        Objects = new Dictionary<string, Types.Object>().AsReadOnly();
-        Axioms = axioms?.ToList().AsReadOnly() ?? throw new ArgumentNullException(nameof(axioms));
-        VerifiedConclusions = new List<Types.Expression>().AsReadOnly();
+        Axioms = axiomList.AsReadOnly();
+        _verifiedConclusions = new List<Expression>();
+        _facts = new HashSet<Expression>(axiomList);
+        _objects = axiomList
+            .Select(a => a.TargetObject)
+            .GroupBy(o => o.Id, StringComparer.Ordinal)
+            .ToDictionary(g => g.Key, g => g.First(), StringComparer.Ordinal);
         CreatedAt = DateTime.UtcNow;
     }
 
-    /// <summary>
-    /// add a verified conclusion to the state
-    /// </summary>
-    public void AddVerifiedConclusion(Types.Expression conclusion)
+    public bool ContainsFact(Expression expression)
     {
-        if (conclusion == null)
-            throw new ArgumentNullException(nameof(conclusion));
+        if (expression is null)
+            throw new IAException<ArgumentNullException>(nameof(expression));
 
-        var list = VerifiedConclusions.ToList();
-        list.Add(conclusion);
-        VerifiedConclusions = list.AsReadOnly();
-        UpdatedAt = DateTime.UtcNow;
+        return _facts.Contains(expression);
     }
 
     /// <summary>
-    /// update the phase of the state
+    /// Adds a verified conclusion exactly once and indexes its target object.
     /// </summary>
+    public void AddVerifiedConclusion(Expression conclusion)
+    {
+        if (conclusion is null)
+            throw new IAException<ArgumentNullException>(nameof(conclusion));
+
+        if (_facts.Add(conclusion))
+        {
+            _verifiedConclusions.Add(conclusion);
+            _objects.TryAdd(conclusion.TargetObject.Id, conclusion.TargetObject);
+            UpdatedAt = DateTime.UtcNow;
+        }
+    }
+
     public void UpdatePhase(StatePhase newPhase)
     {
         Phase = newPhase;

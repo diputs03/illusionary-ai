@@ -1,0 +1,68 @@
+using illusion.CoreLogic.Kernel;
+
+namespace illusion.Meta;
+
+public enum MetaBridgeLevel
+{
+    Object,
+    Meta
+}
+
+public sealed record MetaBridgeResult(bool Success, Statement? Statement, string Message)
+{
+    public static MetaBridgeResult Ok(Statement statement, string message) => new(true, statement, message);
+    public static MetaBridgeResult Fail(string message) => new(false, null, message);
+}
+
+/// <summary>
+/// Single-layer bridge for moving statements between object language and meta
+/// language. It avoids an infinite object/meta/meta-meta tower by treating
+/// promotion as quotation and demotion as a checked unquotation.
+/// </summary>
+public sealed class MetaBridge
+{
+    private readonly IStatementKernel _kernel;
+
+    public MetaBridge(IStatementKernel kernel) => _kernel = kernel ?? throw new ArgumentNullException(nameof(kernel));
+
+    public MetaBridgeResult Promote(Statement statement)
+    {
+        ArgumentNullException.ThrowIfNull(statement);
+        if (statement.IsDestroyed)
+            return MetaBridgeResult.Fail("cannot promote a destroyed statement");
+        return MetaBridgeResult.Ok(_kernel.CreateStatement($"meta({Escape(statement.Text)})"), "statement promoted by quotation");
+    }
+
+    public MetaBridgeResult Demote(Statement statement)
+    {
+        ArgumentNullException.ThrowIfNull(statement);
+        if (statement.IsDestroyed)
+            return MetaBridgeResult.Fail("cannot demote a destroyed statement");
+
+        var text = statement.Text.Trim();
+        var unquoted = text.StartsWith("meta(", StringComparison.Ordinal) && text.EndsWith(')')
+            ? Unescape(text[5..^1])
+            : text;
+
+        return CreatesRussellContradiction(unquoted)
+            ? MetaBridgeResult.Fail("demotion would assert a Russell-style non-membership contradiction")
+            : MetaBridgeResult.Ok(_kernel.CreateStatement(unquoted), "statement demoted into object language");
+    }
+
+    public MetaBridgeResult PromotePdcaStrategy(string plan, string doStep, string check, string act)
+    {
+        var objectStatement = _kernel.CreateStatement($"PDCA(plan:{plan};do:{doStep};check:{check};act:{act})");
+        return Promote(objectStatement);
+    }
+
+    private static bool CreatesRussellContradiction(string text)
+    {
+        var compact = text.Replace(" ", string.Empty, StringComparison.Ordinal);
+        return compact.Contains("={", StringComparison.Ordinal)
+            && compact.Contains("notin", StringComparison.OrdinalIgnoreCase)
+            || compact.Contains("∉", StringComparison.Ordinal);
+    }
+
+    private static string Escape(string value) => value.Replace("\\", "\\\\", StringComparison.Ordinal).Replace(")", "\\)", StringComparison.Ordinal);
+    private static string Unescape(string value) => value.Replace("\\)", ")", StringComparison.Ordinal).Replace("\\\\", "\\", StringComparison.Ordinal);
+}

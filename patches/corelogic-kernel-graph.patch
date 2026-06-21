@@ -1,0 +1,253 @@
+diff --git a/src/illusion.CoreLogic/Graph/KnowledgeGraph.cs b/src/illusion.CoreLogic/Graph/KnowledgeGraph.cs
+index c6ef43f..7177d6a 100644
+--- a/src/illusion.CoreLogic/Graph/KnowledgeGraph.cs
++++ b/src/illusion.CoreLogic/Graph/KnowledgeGraph.cs
+@@ -75,6 +75,103 @@ public class KnowledgeGraph
+     public bool HasNode(string nodeId)
+         => _nodes.ContainsKey(nodeId);
+ 
++    /// <summary>
++    /// Enumerate statement nodes whose l = ln(out_degree) is at least the
++    /// requested threshold. Isolated statement nodes have l = -infinity.
++    /// </summary>
++    public IReadOnlyList<GraphNode> GetStatementNodesByLogicalOutDegree(double minimumL)
++        => _nodes.Values
++            .Where(n => string.Equals(n.Type, "Statement", StringComparison.Ordinal))
++            .Where(n =>
++            {
++                var outDegree = GetOutDegree(n.Id);
++                var l = outDegree <= 0 ? double.NegativeInfinity : Math.Log(outDegree);
++                return l >= minimumL;
++            })
++            .OrderBy(n => n.Id, StringComparer.Ordinal)
++            .ToList();
++
++    /// <summary>
++    /// Verify that every proof node has all declared premise in-edges and
++    /// exactly one conclusion out-edge. This structural verifier intentionally
++    /// stays rule-agnostic; rule semantics belong to kernel/prover adapters.
++    /// </summary>
++    public bool VerifyProofStructure()
++    {
++        foreach (var proof in _nodes.Values.Where(n => string.Equals(n.Type, "Proof", StringComparison.Ordinal)))
++        {
++            var premises = GetInEdges(proof.Id).Where(e => e.Type == "PremiseOf").ToList();
++            var conclusions = GetOutEdges(proof.Id).Where(e => e.Type == "Concludes").ToList();
++            if (premises.Count == 0 || conclusions.Count != 1)
++                return false;
++            if (premises.Any(e => !_nodes.ContainsKey(e.FromId)) || !_nodes.ContainsKey(conclusions[0].ToId))
++                return false;
++        }
++
++        return true;
++    }
++
++    /// <summary>
++    /// Compress a topologically-near node set into adjacent directed balls B(x,d).
++    /// A greedy deterministic set-cover is used so the serialized shape is
++    /// compact and stable across runs.
++    /// </summary>
++    public IReadOnlyList<(string CenterId, int Distance)> CompressAsAdjacentBalls(IEnumerable<string> nodeIds, int maximumDistance)
++    {
++        ArgumentNullException.ThrowIfNull(nodeIds);
++        if (maximumDistance < 0)
++            throw new ArgumentOutOfRangeException(nameof(maximumDistance));
++
++        var remaining = nodeIds.Where(HasNode).ToHashSet(StringComparer.Ordinal);
++        var balls = new Dictionary<(string CenterId, int Distance), HashSet<string>>();
++        foreach (var node in _nodes.Keys.OrderBy(id => id, StringComparer.Ordinal))
++        {
++            for (var distance = 0; distance <= maximumDistance; distance++)
++                balls[(node, distance)] = DirectedBall(node, distance).Where(remaining.Contains).ToHashSet(StringComparer.Ordinal);
++        }
++
++        var result = new List<(string CenterId, int Distance)>();
++        while (remaining.Count > 0)
++        {
++            var best = balls
++                .Where(kv => kv.Value.Overlaps(remaining))
++                .OrderByDescending(kv => kv.Value.Count(remaining.Contains))
++                .ThenBy(kv => kv.Key.Distance)
++                .ThenBy(kv => kv.Key.CenterId, StringComparer.Ordinal)
++                .First();
++
++            result.Add(best.Key);
++            remaining.ExceptWith(best.Value);
++        }
++
++        return result;
++    }
++
++    public IReadOnlySet<string> DirectedBall(string centerId, int distance)
++    {
++        if (!HasNode(centerId))
++            return new HashSet<string>(StringComparer.Ordinal);
++        if (distance < 0)
++            throw new ArgumentOutOfRangeException(nameof(distance));
++
++        var visited = new HashSet<string>(StringComparer.Ordinal) { centerId };
++        var queue = new Queue<(string Id, int Depth)>();
++        queue.Enqueue((centerId, 0));
++        while (queue.Count > 0)
++        {
++            var (id, depth) = queue.Dequeue();
++            if (depth == distance)
++                continue;
++            foreach (var next in GetNeighbors(id).Concat(GetPredecessors(id)))
++            {
++                if (visited.Add(next))
++                    queue.Enqueue((next, depth + 1));
++            }
++        }
++
++        return visited;
++    }
++
+     /// <summary>
+     /// Builder for constructing immutable graphs
+     /// </summary>
+diff --git a/src/illusion.CoreLogic/Graph/ProofNode.cs b/src/illusion.CoreLogic/Graph/ProofNode.cs
+new file mode 100644
+index 0000000..5ffc173
+--- /dev/null
++++ b/src/illusion.CoreLogic/Graph/ProofNode.cs
+@@ -0,0 +1,17 @@
++namespace illusion.CoreLogic.Graph;
++
++/// <summary>
++/// Hyper-edge-like proof node: premise statement nodes point into the proof node,
++/// and the proof node has one outgoing edge to its conclusion statement node.
++/// </summary>
++public sealed record ProofNode(string Id, IReadOnlyList<string> PremiseIds, string ConclusionId, string RuleName)
++{
++    public GraphNode ToGraphNode() => GraphNode.Create(Id, "Proof", RuleName);
++
++    public IEnumerable<GraphEdge> ToEdges()
++    {
++        foreach (var premise in PremiseIds)
++            yield return GraphEdge.Create(premise, Id, "PremiseOf", "premise");
++        yield return GraphEdge.Create(Id, ConclusionId, "Concludes", "conclusion");
++    }
++}
+diff --git a/src/illusion.CoreLogic/Graph/StatementNode.cs b/src/illusion.CoreLogic/Graph/StatementNode.cs
+new file mode 100644
+index 0000000..ce0fe90
+--- /dev/null
++++ b/src/illusion.CoreLogic/Graph/StatementNode.cs
+@@ -0,0 +1,11 @@
++using illusion.CoreLogic.Kernel;
++
++namespace illusion.CoreLogic.Graph;
++
++/// <summary>Graph node that stores a kernel statement and exposes l = ln(out_degree).</summary>
++public sealed record StatementNode(string Id, Statement Statement)
++{
++    public double LogicalOutDegreeWeight(int outDegree) => outDegree <= 0 ? double.NegativeInfinity : Math.Log(outDegree);
++
++    public GraphNode ToGraphNode() => GraphNode.Create(Id, "Statement", Statement.ToString());
++}
+diff --git a/src/illusion.CoreLogic/Kernel/IStatementKernel.cs b/src/illusion.CoreLogic/Kernel/IStatementKernel.cs
+new file mode 100644
+index 0000000..d632ba0
+--- /dev/null
++++ b/src/illusion.CoreLogic/Kernel/IStatementKernel.cs
+@@ -0,0 +1,14 @@
++namespace illusion.CoreLogic.Kernel;
++
++/// <summary>
++/// Kernel interface for statement lifecycle and string conversion.
++/// Implementations may be native-backed or fully managed, but must expose a
++/// stable statement class and total create/destroy/parse/to-string operations.
++/// </summary>
++public interface IStatementKernel : IDisposable
++{
++    Statement CreateStatement(string canonicalText);
++    void DestroyStatement(Statement statement);
++    Statement ParseRegularExpression(string expression);
++    string ToCanonicalString(Statement statement);
++}
+diff --git a/src/illusion.CoreLogic/Kernel/ManagedStatementKernel.cs b/src/illusion.CoreLogic/Kernel/ManagedStatementKernel.cs
+new file mode 100644
+index 0000000..daa4d9f
+--- /dev/null
++++ b/src/illusion.CoreLogic/Kernel/ManagedStatementKernel.cs
+@@ -0,0 +1,38 @@
++using System.Text.RegularExpressions;
++
++namespace illusion.CoreLogic.Kernel;
++
++/// <summary>
++/// Deterministic managed kernel fallback. It validates that regular-expression
++/// statements compile in .NET and canonicalizes whitespace, giving higher-level
++/// graph/meta code a kernel even when native IPK binaries are unavailable.
++/// </summary>
++public sealed class ManagedStatementKernel : IStatementKernel
++{
++    public Statement CreateStatement(string canonicalText) => new(Normalize(canonicalText), destroy: DestroyStatement);
++
++    public Statement ParseRegularExpression(string expression)
++    {
++        ArgumentNullException.ThrowIfNull(expression);
++        _ = new Regex(expression, RegexOptions.CultureInvariant, TimeSpan.FromSeconds(1));
++        return CreateStatement(expression);
++    }
++
++    public string ToCanonicalString(Statement statement)
++    {
++        ArgumentNullException.ThrowIfNull(statement);
++        if (statement.IsDestroyed)
++            throw new ObjectDisposedException(nameof(Statement));
++        return statement.Text;
++    }
++
++    public void DestroyStatement(Statement statement)
++    {
++        ArgumentNullException.ThrowIfNull(statement);
++        statement.NativeHandle = 0;
++    }
++
++    public void Dispose() { }
++
++    private static string Normalize(string text) => string.Join(' ', text.Split((char[]?)null, StringSplitOptions.RemoveEmptyEntries));
++}
+diff --git a/src/illusion.CoreLogic/Kernel/Statement.cs b/src/illusion.CoreLogic/Kernel/Statement.cs
+new file mode 100644
+index 0000000..49f1d5d
+--- /dev/null
++++ b/src/illusion.CoreLogic/Kernel/Statement.cs
+@@ -0,0 +1,35 @@
++namespace illusion.CoreLogic.Kernel;
++
++/// <summary>
++/// Managed handle for a kernel statement. The handle keeps the canonical text
++/// separate from any native pointer so callers can parse, compare, serialize,
++/// and safely destroy statements without depending on a specific prover backend.
++/// </summary>
++public sealed class Statement : IDisposable
++{
++    private Action<Statement>? _destroy;
++
++    internal Statement(string text, nint nativeHandle = 0, Action<Statement>? destroy = null)
++    {
++        Text = string.IsNullOrWhiteSpace(text) ? throw new ArgumentException("statement text cannot be empty", nameof(text)) : text.Trim();
++        NativeHandle = nativeHandle;
++        _destroy = destroy;
++    }
++
++    public string Text { get; }
++    public nint NativeHandle { get; internal set; }
++    public bool IsDestroyed { get; private set; }
++
++    public override string ToString() => Text;
++
++    public void Dispose()
++    {
++        if (IsDestroyed)
++            return;
++
++        _destroy?.Invoke(this);
++        _destroy = null;
++        NativeHandle = 0;
++        IsDestroyed = true;
++    }
++}

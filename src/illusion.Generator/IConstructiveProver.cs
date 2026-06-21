@@ -1,6 +1,6 @@
 using illusion.Common.Types;
 
-namespace illusion.CoreLogic.Prover;
+namespace illusion.Generator;
 
 /// <summary>
 /// constructive prover interface, based on the Curry-Howard correspondence
