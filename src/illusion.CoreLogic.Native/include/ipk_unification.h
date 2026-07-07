@@ -8,9 +8,9 @@
 extern "C" {
 #endif
 
-    API_EXPORT bool IPK_IsMetaVariable(IPK_String symbol_name);
+    IAPI_EXPORT bool IPK_IsMetaVariable(IPK_String symbol_name);
 
-    API_EXPORT IPK_RESULT IPK_Unify(IPK_AST_Handle pattern, IPK_AST_Handle term, IPK_Sub_Handle sub);
+    IAPI_EXPORT IPK_RESULT IPK_Unify(IPK_AST_Handle pattern, IPK_AST_Handle term, IPK_Sub_Handle sub);
 
 #ifdef __cplusplus
 }

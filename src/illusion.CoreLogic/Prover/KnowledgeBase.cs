@@ -8,13 +8,13 @@ namespace illusion.CoreLogic.Prover;
 /// </summary>
 public sealed class KnowledgeBase
 {
-    private readonly HashSet<Expression> _facts = new();
+    private readonly HashSet<Predicate> _facts = new();
     private readonly List<FormalRule> _rules = new();
 
-    public IReadOnlyCollection<Expression> Facts => _facts.ToList().AsReadOnly();
+    public IReadOnlyCollection<Predicate> Facts => _facts.ToList().AsReadOnly();
     public IReadOnlyCollection<FormalRule> Rules => _rules.AsReadOnly();
 
-    public KnowledgeBase(IEnumerable<Expression>? axioms = null, IEnumerable<FormalRule>? rules = null)
+    public KnowledgeBase(IEnumerable<Predicate>? axioms = null, IEnumerable<FormalRule>? rules = null)
     {
         if (axioms is not null)
         {
@@ -29,7 +29,7 @@ public sealed class KnowledgeBase
         }
     }
 
-    public void AddFact(Expression fact)
+    public void AddFact(Predicate fact)
     {
         if (fact is null)
             throw new IAException<ArgumentNullException>(nameof(fact));
@@ -45,7 +45,7 @@ public sealed class KnowledgeBase
         _rules.Add(rule);
     }
 
-    public ProofTrace Prove(Expression target, int maxIterations = 512)
+    public ProofTrace Prove(Predicate target, int maxIterations = 512)
     {
         if (target is null)
             throw new IAException<ArgumentNullException>(nameof(target));
@@ -53,8 +53,8 @@ public sealed class KnowledgeBase
             throw new IAException<ArgumentOutOfRangeException>("max iterations must be positive");
 
         var started = System.Diagnostics.Stopwatch.StartNew();
-        var known = new HashSet<Expression>(_facts);
-        var stepByExpression = new Dictionary<Expression, int>();
+        var known = new HashSet<Predicate>(_facts);
+        var stepByExpression = new Dictionary<Predicate, int>();
         var steps = new List<ProofStep>();
 
         foreach (var fact in known.OrderBy(f => f.ToCanonicalString(), StringComparer.Ordinal))
@@ -95,7 +95,7 @@ public sealed class KnowledgeBase
             started.ElapsedMilliseconds,
             $"Target proposition was not derivable from {_facts.Count} axioms and {_rules.Count} rules.");
 
-        void AddStep(string ruleName, Expression expression, string? description, IReadOnlyList<int> premiseStepNumbers)
+        void AddStep(string ruleName, Predicate expression, string? description, IReadOnlyList<int> premiseStepNumbers)
         {
             var step = new ProofStep(steps.Count + 1, ruleName, expression, description, premiseStepNumbers);
             steps.Add(step);
@@ -110,7 +110,7 @@ public sealed class KnowledgeBase
 
         static string CreateTraceId() => $"proof-{Guid.NewGuid():N}";
 
-        IEnumerable<RuleApplication> ApplyRule(FormalRule rule, IReadOnlyCollection<Expression> availableFacts)
+        IEnumerable<RuleApplication> ApplyRule(FormalRule rule, IReadOnlyCollection<Predicate> availableFacts)
         {
             var bindings = new List<Dictionary<string, string>> { new(StringComparer.Ordinal) };
             var premiseSteps = new List<List<int>> { new() };
@@ -149,7 +149,7 @@ public sealed class KnowledgeBase
         }
     }
 
-    private static bool TryUnify(Expression pattern, Expression fact, IDictionary<string, string> bindings) =>
+    private static bool TryUnify(Predicate pattern, Predicate fact, IDictionary<string, string> bindings) =>
         TryUnifyTerm(pattern.PredicateName, fact.PredicateName, bindings)
         && TryUnifyTerm(pattern.TargetObject.Id, fact.TargetObject.Id, bindings)
         && TryUnifyTerm(pattern.TargetObject.Name, fact.TargetObject.Name, bindings);
@@ -166,10 +166,10 @@ public sealed class KnowledgeBase
         return true;
     }
 
-    private static Expression Instantiate(Expression template, IReadOnlyDictionary<string, string> bindings) =>
+    private static Predicate Instantiate(Predicate template, IReadOnlyDictionary<string, string> bindings) =>
         new(
             Resolve(template.PredicateName, bindings),
-            new illusion.Common.Types.Object(
+            new Common.Types.Object(
                 Resolve(template.TargetObject.Id, bindings),
                 Resolve(template.TargetObject.Name, bindings)));
 
@@ -178,5 +178,5 @@ public sealed class KnowledgeBase
 
     private static bool IsVariable(string value) => value.StartsWith("?", StringComparison.Ordinal);
 
-    private sealed record RuleApplication(Expression Conclusion, IReadOnlyList<int> PremiseStepNumbers);
+    private sealed record RuleApplication(Predicate Conclusion, IReadOnlyList<int> PremiseStepNumbers);
 }

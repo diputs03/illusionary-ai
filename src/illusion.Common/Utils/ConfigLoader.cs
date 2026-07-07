@@ -1,5 +1,5 @@
 ﻿using Microsoft.Extensions.Configuration;
-using illusion.Common.Constants;
+using System.Globalization;
 
 namespace illusion.Common.Utils;
 
@@ -11,58 +11,60 @@ namespace illusion.Common.Utils;
 public static class ConfigLoader
 {
     private static IConfiguration? _configuration;
+    private static string? _configPath;
     private static readonly object _lock = new();
-
     public static IConfiguration Configuration
     {
         get
         {
             if (_configuration is null)
             {
-                lock (_lock)
-                {
-                    _configuration ??= LoadConfiguration();
-                }
+                LoadConfiguration();
             }
-
-            return _configuration;
+            return _configuration ?? throw new InvalidOperationException("Configuration has not been loaded.");
         }
     }
-
-    public static void ResetForTests()
+    public static void Reset()
     {
         lock (_lock)
         {
+            if (_configuration is IDisposable disposable)
+            {
+                disposable.Dispose();
+            }
             _configuration = null;
+            _configPath = null;
         }
     }
 
-    private static IConfiguration LoadConfiguration()
+    public static void LoadConfiguration(bool forced = false)
     {
-        var configPath = ResolveConfigPath(AppContext.BaseDirectory);
-
-        return new ConfigurationBuilder()
-            .SetBasePath(configPath)
-            .AddYamlFile("system.yaml", optional: false, reloadOnChange: true)
-            .AddYamlFile("ggtp.yaml", optional: false, reloadOnChange: true)
-            .AddYamlFile("upp.yaml", optional: false, reloadOnChange: true)
-            .AddEnvironmentVariables(prefix: "ILLUSION_")
-            .Build();
+        lock (_lock)
+        {
+            if (forced || _configuration is null)
+            {
+                if (_configuration is IDisposable oldDisposable)
+                    oldDisposable.Dispose();
+                _configPath ??= ResolveConfigPath(AppContext.BaseDirectory);
+                _configuration = new ConfigurationBuilder()
+                    .SetBasePath(_configPath)
+                    .AddYamlFile("default.yaml", optional: false, reloadOnChange: true)
+                    .AddYamlFile("config.yaml", optional: true, reloadOnChange: true)
+                    .AddEnvironmentVariables(prefix: "ILLUSION_")
+                    .Build();
+            }
+        }
     }
 
-    public static string ResolveConfigPath(string startDirectory)
+    private static string ResolveConfigPath(string startDirectory)
     {
-        if (string.IsNullOrWhiteSpace(startDirectory))
-            throw new ArgumentException("start directory cannot be empty", nameof(startDirectory));
+        ArgumentNullException.ThrowIfNullOrWhiteSpace(startDirectory);
 
         var current = new DirectoryInfo(Path.GetFullPath(startDirectory));
         while (current is not null)
         {
             var candidate = Path.Combine(current.FullName, "config");
-            if (Directory.Exists(candidate)
-                && File.Exists(Path.Combine(candidate, "system.yaml"))
-                && File.Exists(Path.Combine(candidate, "ggtp.yaml"))
-                && File.Exists(Path.Combine(candidate, "upp.yaml")))
+            if (Directory.Exists(candidate) && File.Exists(Path.Combine(candidate, "default.yaml")))
             {
                 return candidate;
             }
@@ -70,22 +72,22 @@ public static class ConfigLoader
             current = current.Parent;
         }
 
-        throw new DirectoryNotFoundException($"config directory not found while searching from: {startDirectory}");
+        throw new DirectoryNotFoundException($"Config directory not found while searching from: {startDirectory}.");
     }
 
-    public static string GetSystemName() => Configuration["system:name"] ?? SystemConstants.ProjectName;
-    public static string GetLogLevel() => Configuration["system:log_level"] ?? SystemConstants.DefaultLogLevel;
-    public static string GetGGTPServerUrl() => Configuration["ggtp:server_url"] ?? GGTPConstants.DefaultServerUrl;
-    public static bool IsUPPEncryptionEnabled() => bool.TryParse(Configuration["upp:encryption_enabled"], out var enabled) ? enabled : UPPConstants.DefaultEncryptionEnabled;
-    public static string GetUPPStorageDirectory() => ResolveConfiguredPath(Configuration["upp:storage_dir"] ?? "./upp_data");
-    public static string GetUPPDefaultNamespace() => Configuration["upp:default_namespace"] ?? UPPConstants.DefaultNamespace;
-
-    private static string ResolveConfiguredPath(string path)
+    public static T GetValue<T>(string key) where T : ISpanParsable<T>
     {
-        if (Path.IsPathRooted(path))
-            return path;
+        ArgumentNullException.ThrowIfNullOrWhiteSpace(key);
 
-        var configPath = ResolveConfigPath(AppContext.BaseDirectory);
-        return Path.GetFullPath(Path.Combine(configPath, "..", path));
+        string? str;
+        lock (_lock)
+        {
+            str = (_configuration ?? throw new InvalidOperationException("Configuration has not been loaded."))[key];
+        }
+        if (str is null)
+            throw new KeyNotFoundException($"Configuration key '{key}' was not found.");
+        if (T.TryParse(str, CultureInfo.InvariantCulture, out T def) is false)
+            throw new FormatException($"Value '{str}' for key '{key}' cannot be parsed to type {typeof(T).Name}.");
+        return def;
     }
 }

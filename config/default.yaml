@@ -1,0 +1,22 @@
+system:
+    name: "Illusionary-AI"
+    version: "1.0.0"
+    log_level: "DEBUG"
+    max_iteration_steps: 10000
+    default_language: "en"
+
+core_logic:
+    kernel: "lean"
+    lean_path: "/usr/local/bin/lean"
+upp:
+    storage_dir: "./upp_data"
+    encryption_enabled: true
+    auto_backup: true
+    backup_dir: "./upp_backup"
+    default_namespace: "upp://default/"
+ggtp:
+    server_url: "https//ggtp.illusionary-ai.org"
+    timeout_seconds: 30
+    auto_sync: true
+    signature_verfy: true
+    cache_dir: "./ggtp_modules"

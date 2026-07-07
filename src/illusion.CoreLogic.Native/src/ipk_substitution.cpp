@@ -1,16 +1,12 @@
 #include "ipk_substitution.h"
 #include <vector>
 
-struct IPK_Sub {
-    std::vector<IPK_SubPair> pairs;
-};
-
-API_EXPORT IPK_RESULT IPK_Sub_Create(IPK_Sub_Handle* out_sub) {
+IAPI_EXPORT IPK_RESULT IPK_Sub_Create(IPK_Sub_Handle* out_sub) {
     if (!out_sub) {
         return IPK_ERROR_NULL_POINTER;
     }
 
-    IPK_Sub_Handle sub = NewObject<IPK_Sub>();
+    IPK_Sub_Handle sub = INewObject<IPK_Sub>();
     if (!sub) {
         return IPK_ERROR_OUT_OF_MEMORY;
     }
@@ -18,13 +14,13 @@ API_EXPORT IPK_RESULT IPK_Sub_Create(IPK_Sub_Handle* out_sub) {
     return IPK_SUCCESS;
 }
 
-API_EXPORT IPK_RESULT IPK_Sub_Add(IPK_Sub_Handle sub, IPK_String var_name, IPK_AST_Handle replacement) {
+IAPI_EXPORT IPK_RESULT IPK_Sub_Add(IPK_Sub_Handle sub, IPK_String var_name, IPK_AST_Handle replacement) {
     if (!sub || !var_name) {
         return IPK_ERROR_NULL_POINTER;
     }
 
     for (size_t i = 0; i < sub->pairs.size(); i++) {
-        if (ipk_strcmp(sub->pairs[i].var_name, var_name) == 0) {
+        if (istrcmp(sub->pairs[i].var_name, var_name) == 0) {
             if (IPK_AST_Equal(sub->pairs[i].replacement, replacement)) {
                 return IPK_SUCCESS;
             }
@@ -35,7 +31,7 @@ API_EXPORT IPK_RESULT IPK_Sub_Add(IPK_Sub_Handle sub, IPK_String var_name, IPK_A
     }
 
     sub->pairs.push_back(IPK_SubPair());
-	sub->pairs.back().var_name = ipk_strdup(var_name);
+	sub->pairs.back().var_name = istrdup(var_name);
 	IPK_RESULT res = IPK_AST_Clone(replacement, &sub->pairs.back().replacement);
 
     if (!sub->pairs.back().var_name || res != IPK_SUCCESS) {
@@ -48,13 +44,13 @@ API_EXPORT IPK_RESULT IPK_Sub_Add(IPK_Sub_Handle sub, IPK_String var_name, IPK_A
     return IPK_SUCCESS;
 }
 
-API_EXPORT IPK_RESULT IPK_Sub_Lookup(IPK_Sub_Handle sub, IPK_String var_name, IPK_AST_Handle* out_replacement) {
+IAPI_EXPORT IPK_RESULT IPK_Sub_Lookup(IPK_Sub_Handle sub, IPK_String var_name, IPK_AST_Handle* out_replacement) {
     if (!sub || !var_name || !out_replacement) {
         return IPK_ERROR_NULL_POINTER;
     }
 
     for (size_t i = 0; i < sub->pairs.size(); i++) {
-        if (ipk_strcmp(sub->pairs[i].var_name, var_name) == 0) {
+        if (istrcmp(sub->pairs[i].var_name, var_name) == 0) {
             *out_replacement = sub->pairs[i].replacement;
             return IPK_SUCCESS;
         }
@@ -63,7 +59,7 @@ API_EXPORT IPK_RESULT IPK_Sub_Lookup(IPK_Sub_Handle sub, IPK_String var_name, IP
     return IPK_ERROR_NOT_FOUND;
 }
 
-API_EXPORT IPK_RESULT IPK_Sub_Apply(IPK_Sub_Handle sub, IPK_AST_Handle node, IPK_AST_Handle* out_result) {
+IAPI_EXPORT IPK_RESULT IPK_Sub_Apply(IPK_Sub_Handle sub, IPK_AST_Handle node, IPK_AST_Handle* out_result) {
     if (!sub || !node || !out_result) {
         return IPK_ERROR_NULL_POINTER;
     }
@@ -80,7 +76,7 @@ API_EXPORT IPK_RESULT IPK_Sub_Apply(IPK_Sub_Handle sub, IPK_AST_Handle node, IPK
 		}
     }, {
 		size_t length = node->data.list.length;
-        IPK_AST_Handle* new_elements = NewObject<IPK_AST_Handle>(length);
+        IPK_AST_Handle* new_elements = INewObject<IPK_AST_Handle>(length);
         if (!new_elements) {
             return IPK_ERROR_OUT_OF_MEMORY;
         }
@@ -90,7 +86,7 @@ API_EXPORT IPK_RESULT IPK_Sub_Apply(IPK_Sub_Handle sub, IPK_AST_Handle node, IPK
                 for (size_t j = 0; j < i; j++) {
                     IPK_AST_Destroy(new_elements[j]);
                 }
-                DestroyObject(new_elements);
+                IDestroyObject(new_elements);
                 return res;
             }
         }
@@ -98,13 +94,13 @@ API_EXPORT IPK_RESULT IPK_Sub_Apply(IPK_Sub_Handle sub, IPK_AST_Handle node, IPK
         for (size_t i = 0; i < length; i++) {
             IPK_AST_Destroy(new_elements[i]);
         }
-        DestroyObject(new_elements);
+        IDestroyObject(new_elements);
         return res;
     });
     return IPK_ERROR;
 }
 
-API_EXPORT void IPK_Sub_Destroy(IPK_Sub_Handle sub) {
+IAPI_EXPORT void IPK_Sub_Destroy(IPK_Sub_Handle sub) {
     if (!sub) {
         return;
     }
@@ -113,5 +109,5 @@ API_EXPORT void IPK_Sub_Destroy(IPK_Sub_Handle sub) {
         free(sub->pairs[i].var_name);
         IPK_AST_Destroy(sub->pairs[i].replacement);
     }
-    DestroyObject(sub);
+    IDestroyObject(sub);
 }

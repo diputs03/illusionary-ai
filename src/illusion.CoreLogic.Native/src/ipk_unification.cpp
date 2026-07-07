@@ -1,13 +1,13 @@
 #include "ipk_unification.h"
 
-API_EXPORT bool IPK_IsMetaVariable(IPK_String symbol_name) {
+IAPI_EXPORT bool IPK_IsMetaVariable(IPK_String symbol_name) {
 	if (!symbol_name || !*symbol_name) {
 		return false;
 	}
 	return isupper(symbol_name[0]);
 }
 
-API_EXPORT IPK_RESULT IPK_Unify(IPK_AST_Handle pattern, IPK_AST_Handle term, IPK_Sub_Handle sub) {
+IAPI_EXPORT IPK_RESULT IPK_Unify(IPK_AST_Handle pattern, IPK_AST_Handle term, IPK_Sub_Handle sub) {
 	if (!pattern || !term || !sub) {
 		return IPK_ERROR_NULL_POINTER;
 	}
@@ -18,7 +18,7 @@ API_EXPORT IPK_RESULT IPK_Unify(IPK_AST_Handle pattern, IPK_AST_Handle term, IPK
 		return IPK_Sub_Add(sub, term->data.symbol, pattern);
 	}
 	if (pattern->type == IPK_AST_NODE_SYMBOL && term->type == IPK_AST_NODE_SYMBOL) {
-		if (ipk_strcmp(pattern->data.symbol, term->data.symbol) == 0) {
+		if (istrcmp(pattern->data.symbol, term->data.symbol) == 0) {
 			return IPK_SUCCESS;
 		} else {
 			return IPK_ERROR_UNIFICATION_FAILED;

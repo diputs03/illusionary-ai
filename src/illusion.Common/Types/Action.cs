@@ -20,10 +20,8 @@ public class Action
 
     public Action(string id, string name, ActionType type, IEnumerable<Types.Constraint> constraints, string description = "")
     {
-        if (string.IsNullOrWhiteSpace(id))
-            throw new ArgumentException("action ID cannot be empty", nameof(id));
-        if (string.IsNullOrWhiteSpace(name))
-            throw new ArgumentException("action name cannot be empty", nameof(name));
+        ArgumentException.ThrowIfNullOrWhiteSpace(id);
+        ArgumentException.ThrowIfNullOrWhiteSpace(name);
 
         Id = id;
         Name = name;

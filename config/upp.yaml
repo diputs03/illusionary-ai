@@ -1,6 +1,0 @@
-upp:
-    storage_dir: "./upp_data"
-    encryption_enabled: true
-    auto_backup: true
-    backup_dir: "./upp_backup"
-    default_namespace: "upp://default/"

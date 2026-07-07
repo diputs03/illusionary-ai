@@ -13,10 +13,10 @@ typedef IPK_Context* IPK_Context_Handle;
 extern "C" {
 #endif
 
-    API_EXPORT IPK_RESULT IPK_Context_Create(IPK_Context_Handle* out_context);
-    API_EXPORT IPK_RESULT IPK_Context_AddAxiom(IPK_Context_Handle context, index_t axiom_id, IPK_AST_Handle statement);
-    API_EXPORT IPK_RESULT IPK_Context_AddRule(IPK_Context_Handle context, index_t rule_id, IPK_Rule_Handle rule);
-    API_EXPORT void IPK_Context_Destroy(IPK_Context_Handle context);
+    IAPI_EXPORT IPK_RESULT IPK_Context_Create(IPK_Context_Handle* out_context);
+    IAPI_EXPORT IPK_RESULT IPK_Context_AddAxiom(IPK_Context_Handle context, index_t axiom_id, IPK_AST_Handle statement);
+    IAPI_EXPORT IPK_RESULT IPK_Context_AddRule(IPK_Context_Handle context, index_t rule_id, IPK_Rule_Handle rule);
+    IAPI_EXPORT void IPK_Context_Destroy(IPK_Context_Handle context);
 
 #ifdef __cplusplus
 }

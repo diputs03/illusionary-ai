@@ -1,6 +1,0 @@
-ggtp:
-    server_url: "https//ggtp.illusionary-ai.org"
-    timeout_seconds: 30
-    auto_sync: true
-    signature_verfy: true
-    cache_dir: "./ggtp_modules"

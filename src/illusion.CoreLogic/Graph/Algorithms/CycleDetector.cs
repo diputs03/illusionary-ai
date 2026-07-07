@@ -1,138 +1,50 @@
+using illusion.CoreLogic.IPK_Adapter;
+
 namespace illusion.CoreLogic.Graph.Algorithms;
 
 /// <summary>
-/// Cycle detection and topological sorting for directed graphs
-/// Critical for proof consistency: circular reasoning = logical fallacy
+/// cycle, topological sort, and strongly connected components, reachable from, shortest path
 /// </summary>
 public static class CycleDetector
 {
     /// <summary>
-    /// Detect if graph contains any cycles
-    /// Uses DFS-based coloring algorithm: O(V+E)
+    /// Cycle detection using DFS
     /// </summary>
-    public static bool HasCycle(KnowledgeGraph graph)
-        => FindCycle(graph) != null;
-
-    /// <summary>
-    /// Find a cycle in the graph (returns null if acyclic)
-    /// Returns list of node IDs forming the cycle
-    /// </summary>
-    public static List<string>? FindCycle(KnowledgeGraph graph)
+    /// <typeparam name="T"></typeparam>
+    /// <param name="graph"></param>
+    /// <returns></returns>
+    public static bool HasCycle<T>(T graph) where T : ReadOnlyGraph<Node, Edge>
     {
         var visited = new HashSet<string>();
-        var recursionStack = new HashSet<string>();
-        var path = new Stack<string>();
-
-        foreach (var node in graph.Nodes.Select(n => n.Id))
+        var recStack = new HashSet<string>();
+        bool DFS(Node node)
         {
-            if (DfsCycle(node, graph, visited, recursionStack, path, out var cycle))
-                return cycle;
-        }
-        return null;
-    }
-
-    private static bool DfsCycle(
-        string current,
-        KnowledgeGraph graph,
-        HashSet<string> visited,
-        HashSet<string> recursionStack,
-        Stack<string> path,
-        out List<string> cycle)
-    {
-        cycle = null!;
-
-        if (recursionStack.Contains(current))
-        {
-            // Found cycle: reconstruct from recursion stack
-            cycle = path.Reverse().SkipWhile(n => n != current).ToList();
-            cycle.Add(current); // Close the cycle
-            return true;
-        }
-
-        if (visited.Contains(current))
+            if (recStack.Contains(node.Id))
+                return true;
+            if (visited.Contains(node.Id))
+                return false;
+            visited.Add(node.Id);
+            recStack.Add(node.Id);
+            foreach (var neighbor in graph.Edge[node.Id])
+            {
+                if (DFS(neighbor.Value))
+                    return true;
+            }
+            recStack.Remove(node.Id);
             return false;
-
-        visited.Add(current);
-        recursionStack.Add(current);
-        path.Push(current);
-
-        foreach (var neighbor in graph.GetNeighbors(current))
+        }
+        foreach (var node in graph.Node.Values)
         {
-            if (DfsCycle(neighbor, graph, visited, recursionStack, path, out cycle))
+            if (DFS(node))
                 return true;
         }
-
-        recursionStack.Remove(current);
-        path.Pop();
         return false;
     }
-
     /// <summary>
-    /// Kahn's algorithm for topological sort
-    /// Returns topological order OR null if graph has cycle
-    /// Critical for proof ordering: premises must come before conclusions
+    /// Strongly connected components (SCCs) using Tarjan's algorithm
     /// </summary>
-    public static List<string>? TopologicalSort(KnowledgeGraph graph)
-    {
-        var inDegree = new Dictionary<string, int>();
-        foreach (var node in graph.Nodes.Select(n => n.Id))
-            inDegree[node] = graph.GetInEdges(node).Count;
-
-        var queue = new Queue<string>();
-        foreach (var node in inDegree.Where(kv => kv.Value == 0))
-            queue.Enqueue(node.Key);
-
-        var result = new List<string>();
-        var visitedCount = 0;
-
-        while (queue.Count > 0)
-        {
-            var current = queue.Dequeue();
-            result.Add(current);
-            visitedCount++;
-
-            foreach (var neighbor in graph.GetNeighbors(current))
-            {
-                inDegree[neighbor]--;
-                if (inDegree[neighbor] == 0)
-                    queue.Enqueue(neighbor);
-            }
-        }
-
-        // If not all nodes visited, there's a cycle
-        return visitedCount == graph.NodeCount ? result : null;
-    }
-
-    /// <summary>
-    /// Check if proof DAG is valid (no circular reasoning)
-    /// In formal logic: A cannot be derived from B if B is derived from A
-    /// </summary>
-    public static bool IsValidProofDAG(KnowledgeGraph proofGraph)
-    {
-        // Filter to only DerivedFrom edges (proof derivation)
-        var derivationEdges = proofGraph.Nodes
-            .SelectMany(n => proofGraph.GetOutEdges(n.Id))
-            .Where(e => e.Type == "DerivedFrom")
-            .ToList();
-
-        if (!derivationEdges.Any())
-            return true; // Trivially valid
-
-        // Build derivation subgraph
-        var builder = KnowledgeGraph.CreateBuilder();
-        foreach (var node in proofGraph.Nodes)
-            builder.AddNode(node);
-        foreach (var edge in derivationEdges)
-            builder.AddEdge(edge);
-
-        var derivationGraph = builder.Build();
-        return !HasCycle(derivationGraph);
-    }
-
-    /// <summary>
-    /// Find strongly connected components (SCCs) using Tarjan's algorithm
-    /// Each SCC is a maximal cycle
-    /// </summary>
+    /// <param name="graph"></param>
+    /// <returns></returns>
     public static List<List<string>> FindStronglyConnectedComponents(KnowledgeGraph graph)
     {
         var index = 0;
@@ -142,7 +54,7 @@ public static class CycleDetector
         var onStack = new HashSet<string>();
         var sccs = new List<List<string>>();
 
-        foreach (var node in graph.Nodes.Select(n => n.Id))
+        foreach (var node in graph.Node.Values.Select(n => n.Id))
         {
             if (!indices.ContainsKey(node))
                 StrongConnect(node, graph, ref index, stack, indices, lowlink, onStack, sccs);
@@ -150,7 +62,17 @@ public static class CycleDetector
 
         return sccs;
     }
-
+    /// <summary>
+    /// Strongly connected components (SCCs) using Tarjan's algorithm
+    /// </summary>
+    /// <param name="v"></param>
+    /// <param name="graph"></param>
+    /// <param name="index"></param>
+    /// <param name="stack"></param>
+    /// <param name="indices"></param>
+    /// <param name="lowlink"></param>
+    /// <param name="onStack"></param>
+    /// <param name="sccs"></param>
     private static void StrongConnect(
         string v,
         KnowledgeGraph graph,
@@ -167,16 +89,16 @@ public static class CycleDetector
         stack.Push(v);
         onStack.Add(v);
 
-        foreach (var w in graph.GetNeighbors(v))
+        foreach (var w in graph.Edge[graph.Node[v].Id])
         {
-            if (!indices.ContainsKey(w))
+            if (!indices.ContainsKey(w.Value.Id))
             {
-                StrongConnect(w, graph, ref index, stack, indices, lowlink, onStack, sccs);
-                lowlink[v] = Math.Min(lowlink[v], lowlink[w]);
+                StrongConnect(w.Value.Id, graph, ref index, stack, indices, lowlink, onStack, sccs);
+                lowlink[v] = Math.Min(lowlink[v], lowlink[w.Value.Id]);
             }
-            else if (onStack.Contains(w))
+            else if (onStack.Contains(w.Value.Id))
             {
-                lowlink[v] = Math.Min(lowlink[v], indices[w]);
+                lowlink[v] = Math.Min(lowlink[v], indices[w.Value.Id]);
             }
         }
 
@@ -195,8 +117,11 @@ public static class CycleDetector
     }
 
     /// <summary>
-    /// Get all nodes reachable from start (transitive closure)
+    /// Connectiveness: Find all nodes reachable from a given node using BFS
     /// </summary>
+    /// <param name="graph"></param>
+    /// <param name="start"></param>
+    /// <returns></returns>
     public static HashSet<string> ReachableFrom(KnowledgeGraph graph, string start)
     {
         var visited = new HashSet<string>();
@@ -209,18 +134,21 @@ public static class CycleDetector
             if (visited.Contains(current)) continue;
             visited.Add(current);
 
-            foreach (var neighbor in graph.GetNeighbors(current))
+            foreach (var neighbor in graph.Edge[graph.Node[current].Id])
             {
-                if (!visited.Contains(neighbor))
-                    queue.Enqueue(neighbor);
+                if (!visited.Contains(neighbor.Value.Id))
+                    queue.Enqueue(neighbor.Value.Id);
             }
         }
         return visited;
     }
-
     /// <summary>
-    /// Find shortest path using BFS
+    /// Shortest path using BFS (unweighted graph)
     /// </summary>
+    /// <param name="graph"></param>
+    /// <param name="from"></param>
+    /// <param name="to"></param>
+    /// <returns></returns>
     public static List<string>? ShortestPath(KnowledgeGraph graph, string from, string to)
     {
         var parent = new Dictionary<string, string>();
@@ -246,13 +174,13 @@ public static class CycleDetector
                 return path;
             }
 
-            foreach (var neighbor in graph.GetNeighbors(current))
+            foreach (var neighbor in graph.Edge[graph.Node[current].Id])
             {
-                if (!visited.Contains(neighbor))
+                if (!visited.Contains(neighbor.Value.Id))
                 {
-                    visited.Add(neighbor);
-                    parent[neighbor] = current;
-                    queue.Enqueue(neighbor);
+                    visited.Add(neighbor.Value.Id);
+                    parent[neighbor.Value.Id] = current;
+                    queue.Enqueue(neighbor.Value.Id);
                 }
             }
         }

@@ -4,12 +4,12 @@ namespace illusion.Common.Types;
 /// Essential predicate expression E(O). Expressions are immutable value objects so
 /// they can be used safely as deterministic facts inside proof state.
 /// </summary>
-public sealed class Expression : IEquatable<Expression>
+public sealed class Predicate : IEquatable<Predicate>
 {
     public string PredicateName { get; }
     public Object TargetObject { get; }
 
-    public Expression(string predicateName, Object targetObject)
+    public Predicate(string predicateName, Object targetObject)
     {
         if (string.IsNullOrWhiteSpace(predicateName))
             throw new IAException<ArgumentException>("predicate name cannot be empty");
@@ -22,14 +22,14 @@ public sealed class Expression : IEquatable<Expression>
 
     public string ToCanonicalString() => $"{PredicateName}({TargetObject.Id}:{TargetObject.Name})";
 
-    public bool Equals(Expression? other) =>
+    public bool Equals(Predicate? other) =>
         other is not null
         && StringComparer.Ordinal.Equals(PredicateName, other.PredicateName)
         && TargetObject.Equals(other.TargetObject);
 
-    public override bool Equals(object? obj) => Equals(obj as Expression);
+    public override bool Equals(object? obj) => Equals(obj as Predicate);
 
-    public bool IsExtensionOf(Expression? other) =>
+    public bool IsExtensionOf(Predicate? other) =>
         other is null
         || (StringComparer.Ordinal.Equals(PredicateName, other.PredicateName) && TargetObject.Name.Contains(other.TargetObject.Name));
 

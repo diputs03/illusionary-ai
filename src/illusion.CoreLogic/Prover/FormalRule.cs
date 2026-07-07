@@ -9,11 +9,11 @@ namespace illusion.CoreLogic.Prover;
 public sealed class FormalRule
 {
     public string Name { get; }
-    public IReadOnlyList<Expression> Premises { get; }
-    public Expression Conclusion { get; }
+    public IReadOnlyList<Predicate> Premises { get; }
+    public Predicate Conclusion { get; }
     public string Description { get; }
 
-    public FormalRule(string name, IEnumerable<Expression> premises, Expression conclusion, string description = "")
+    public FormalRule(string name, IEnumerable<Predicate> premises, Predicate conclusion, string description = "")
     {
         if (string.IsNullOrWhiteSpace(name))
             throw new IAException<ArgumentException>("rule name cannot be empty");

@@ -1,5 +1,4 @@
-﻿using illusion.Common.Constants;
-//using illusion.Common.Extensions;
+﻿//using illusion.Common.Extensions;
 using Serilog;
 using Serilog.Events;
 //using Serilog.Sinks.Console;
@@ -33,7 +32,7 @@ public static class LoggerUtils
 
     private static ILogger CreateLogger()
     {
-        var logLevel = ParseLogLevel(ConfigLoader.GetLogLevel());
+        var logLevel = ParseLogLevel(ConfigLoader.GetValue<string>("system:log_level"));
         var logPath = Path.GetFullPath(Path.Combine(AppContext.BaseDirectory, "..", "..", "..", "..", "logs"));
         Directory.CreateDirectory(logPath);
 
@@ -44,8 +43,8 @@ public static class LoggerUtils
             .MinimumLevel.Override("Microsoft", LogEventLevel.Warning)
             .MinimumLevel.Override("System", LogEventLevel.Warning)
             .Enrich.FromLogContext()
-            .Enrich.WithProperty("Application", SystemConstants.ProjectName)
-            .Enrich.WithProperty("Version", SystemConstants.Version)
+            .Enrich.WithProperty("Application", ConfigLoader.GetValue<string>("system:name"))
+            .Enrich.WithProperty("Version", ConfigLoader.GetValue<string>("system:version"))
             .WriteTo.Console(
                 outputTemplate: "[{Timestamp:HH:mm:ss.fff} {Level:u3}] {Message:lj}{NewLine}{Exception}",
                 theme: AnsiConsoleTheme.Code)

@@ -1,47 +1,50 @@
 #include "ipk_common.h"
 
-API_EXPORT IPK_RESULT IPK_MakeString(CSHARP_String in, IPK_String* out) {
+IAPI_EXPORT IPK_RESULT IPK_MakeString(CSHARP_String in, IPK_String* out) {
     if (!in || !out) {
         return IPK_ERROR_NULL_POINTER;
     }
-    *out = ipk_strdup(in);
+    *out = INewObject<char, false>(istrlen(in), in);
     if (!*out) {
         return IPK_ERROR_OUT_OF_MEMORY;
     }
     return IPK_SUCCESS;
 }
 
-template<typename T>
-API_EXPORT IPK_RESULT IPK_MakeList(T* in, size_t length, T** out) {
-    *out = NewObject<T>(length);
+IAPI_EXPORT IPK_RESULT IPK_GetString(IPK_String in, CSHARP_String* out) {
+    if (!in || !out) {
+        return IPK_ERROR_NULL_POINTER;
+    }
+    size_t siz = IObjectSize<char>(in);
+    char* s = INewObject<char, false>(siz + 1, in);
+    s[siz] = '\n';
+    *out = s;
     if (!*out) {
         return IPK_ERROR_OUT_OF_MEMORY;
-    }
-    for (size_t i = 0; i < length; i++) {
-        (*out)[i] = in[i];
     }
     return IPK_SUCCESS;
 }
 
-API_EXPORT void IPK_FreeString(IPK_String str) {
-    free(str);
+
+IAPI_EXPORT void IPK_FreeString(IPK_String str) {
+    IDestroyObject(str);
 }
 
-API_EXPORT CSHARP_String IPK_GetErrorMessage(IPK_RESULT result) {
+IAPI_EXPORT CSHARP_String IPK_GetErrorMessage(IPK_RESULT result) {
     switch (result) {
-    case IPK_SUCCESS:                    return TEXT("Success");              
-    case IPK_ERROR:                      return TEXT("General error");        
-    case IPK_ERROR_RUNTIME_ERROR:        return TEXT("Runtime error");        
-    case IPK_ERROR_INVALID_ARGUMENT:     return TEXT("Invalid argument");
-    case IPK_ERROR_SYNTAX_ERROR:         return TEXT("Syntax error");         
-    case IPK_ERROR_UNSUPPORTED_OPERATION:return TEXT("Unsupported operation");
-    case IPK_ERROR_AXIOM_NOT_FOUND:      return TEXT("Axiom not found");      
-    case IPK_ERROR_UNIFICATION_FAILED: return TEXT("Unification failed");
-    case IPK_ERROR_NOT_FOUND:          return TEXT("Not found");
-    case IPK_ERROR_INTERNET_ERROR:       return TEXT("Internet error");       
-    case IPK_ERROR_MEMORY_ERROR:         return TEXT("Memory error");         
-    case IPK_ERROR_NULL_POINTER:         return TEXT("Null pointer error");   
-    case IPK_ERROR_OUT_OF_MEMORY:       return TEXT("Out of memory");
-    default:                             return TEXT("Unknown error code");   
+    case IPK_SUCCESS:                       return ITEXT("Success");
+    case IPK_ERROR:                         return ITEXT("General error");
+    case IPK_ERROR_RUNTIME_ERROR:           return ITEXT("Runtime error");
+    case IPK_ERROR_INVALID_ARGUMENT:        return ITEXT("Invalid argument");
+    case IPK_ERROR_SYNTAX_ERROR:            return ITEXT("Syntax error");
+    case IPK_ERROR_UNSUPPORTED_OPERATION:   return ITEXT("Unsupported operation");
+    case IPK_ERROR_AXIOM_NOT_FOUND:         return ITEXT("Axiom not found");
+    case IPK_ERROR_UNIFICATION_FAILED:      return ITEXT("Unification failed");
+    case IPK_ERROR_NOT_FOUND:               return ITEXT("Not found");
+    case IPK_ERROR_INTERNET_ERROR:          return ITEXT("Internet error");
+    case IPK_ERROR_MEMORY_ERROR:            return ITEXT("Memory error");
+    case IPK_ERROR_NULL_POINTER:            return ITEXT("Null pointer error");
+    case IPK_ERROR_OUT_OF_MEMORY:           return ITEXT("Out of memory");
+    default:                                return ITEXT("Unknown error code"); 
     }
 }

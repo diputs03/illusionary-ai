@@ -7,6 +7,6 @@ namespace illusion.CoreLogic.Prover;
 /// </summary>
 public interface IAnalyticalProver
 {
-    ProofTrace Prove(Expression proposition);
-    bool Verify(Expression proposition);
+    ProofTrace Prove(Predicate proposition);
+    bool Verify(Predicate proposition);
 }

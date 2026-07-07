@@ -14,10 +14,10 @@ public sealed class Constraint
     }
 
     public ConstraintType Type { get; }
-    public Expression ConstraintExpression { get; }
+    public Predicate ConstraintExpression { get; }
     public string Description { get; }
 
-    public Constraint(ConstraintType type, Expression constraintExpression, string description = "")
+    public Constraint(ConstraintType type, Predicate constraintExpression, string description = "")
     {
         Type = type;
         ConstraintExpression = constraintExpression ?? throw new IAException<ArgumentNullException>(nameof(constraintExpression));

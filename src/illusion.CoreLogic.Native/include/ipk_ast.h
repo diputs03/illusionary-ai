@@ -3,6 +3,7 @@
 
 #include "ipk_common.h"
 
+IENUM()
 typedef enum {
 	IPK_AST_NODE_SYMBOL,
 	IPK_AST_NODE_LIST,
@@ -13,6 +14,7 @@ typedef enum {
 typedef struct IPK_AST_Node IPK_AST_Node;
 typedef IPK_AST_Node* IPK_AST_Handle;
 
+ISTRUCT()
 struct IPK_AST_Node {
     IPK_AST_NodeType type;
     union {
@@ -29,19 +31,19 @@ struct IPK_AST_Node {
 extern "C" {
 #endif
 
-    API_EXPORT IPK_RESULT IPK_AST_CreateSymbol(IPK_String name, IPK_AST_Handle* out_ast);
-    API_EXPORT IPK_RESULT IPK_AST_CreateList(size_t length, IPK_AST_Handle* elements, IPK_AST_Handle* out_ast);
+    IAPI_EXPORT IPK_RESULT IPK_AST_CreateSymbol(IPK_String name, IPK_AST_Handle* out_ast);
+    IAPI_EXPORT IPK_RESULT IPK_AST_CreateList(size_t length, IPK_AST_Handle* elements, IPK_AST_Handle* out_ast);
 
-	API_EXPORT IPK_RESULT IPK_AST_GetType(IPK_AST_Handle ast, IPK_AST_NodeType* out_type);
-	API_EXPORT IPK_RESULT IPK_AST_GetSymbol(IPK_AST_Handle ast, IPK_String* out_name);
-	API_EXPORT IPK_RESULT IPK_AST_GetList(IPK_AST_Handle ast, size_t index, IPK_AST_Handle* out_element);
+	IAPI_EXPORT IPK_RESULT IPK_AST_GetType(IPK_AST_Handle ast, IPK_AST_NodeType* out_type);
+	IAPI_EXPORT IPK_RESULT IPK_AST_GetSymbol(IPK_AST_Handle ast, IPK_String* out_name);
+	IAPI_EXPORT IPK_RESULT IPK_AST_GetList(IPK_AST_Handle ast, size_t index, IPK_AST_Handle* out_element);
     
-    API_EXPORT IPK_RESULT IPK_AST_Clone(IPK_AST_Handle ast, IPK_AST_Handle* out_ast);
+    IAPI_EXPORT IPK_RESULT IPK_AST_Clone(IPK_AST_Handle ast, IPK_AST_Handle* out_ast);
     
-    API_EXPORT bool IPK_AST_Equal(IPK_AST_Handle a, IPK_AST_Handle b);
-    API_EXPORT IPK_RESULT IPK_AST_ToString(IPK_AST_Handle ast, IPK_String* out_str);
+    IAPI_EXPORT bool IPK_AST_Equal(IPK_AST_Handle a, IPK_AST_Handle b);
+    IAPI_EXPORT IPK_RESULT IPK_AST_ToString(IPK_AST_Handle ast, IPK_String* out_str);
     
-    API_EXPORT void IPK_AST_Destroy(IPK_AST_Handle ast);
+    IAPI_EXPORT void IPK_AST_Destroy(IPK_AST_Handle ast);
 
 #ifdef __cplusplus
 }

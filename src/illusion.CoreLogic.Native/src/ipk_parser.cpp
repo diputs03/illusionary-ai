@@ -6,7 +6,7 @@ enum LexState {
 };
 static IPK_String current_pos;
 static LexState state;
-static std::vector<Char> current_symbol;
+static std::vector<IPK_Char> current_symbol;
 
 static void lex_reset(IPK_String input) {
     current_pos = input;
@@ -15,7 +15,7 @@ static void lex_reset(IPK_String input) {
 }
 static int lex_next_token() {
     while (*current_pos != '\0') {
-        Char c = *current_pos;
+        IPK_Char c = *current_pos;
 
         switch (state) {
         case LEX_STATE_NORMAL:
@@ -57,7 +57,7 @@ static int lex_next_token() {
     return 0; // EOF
 }
 
-API_EXPORT IPK_RESULT IPK_ParseStatement(IPK_String s_expression, IPK_AST_Handle* out_ast) {
+IAPI_EXPORT IPK_RESULT IPK_ParseStatement(IPK_String s_expression, IPK_AST_Handle* out_ast) {
     if (!s_expression || !out_ast) {
         return IPK_ERROR_NULL_POINTER;
     }
@@ -86,7 +86,7 @@ API_EXPORT IPK_RESULT IPK_ParseStatement(IPK_String s_expression, IPK_AST_Handle
     auto makelist = [&](std::vector<IPK_AST_Handle>& elements) -> IPK_AST_Handle {
         IPK_AST_Handle* elements_array = nullptr;
         if (!elements.empty()) {
-            elements_array = NewObject<IPK_AST_Handle>(elements.size());
+            elements_array = INewObject<IPK_AST_Handle>(elements.size());
             for (size_t i = 0; i < elements.size(); i++) {
                 elements_array[i] = elements[i];
             }
@@ -95,7 +95,7 @@ API_EXPORT IPK_RESULT IPK_ParseStatement(IPK_String s_expression, IPK_AST_Handle
         IPK_AST_Handle list_node;
         IPK_RESULT res = IPK_AST_CreateList(elements.size(), elements_array, &list_node);
 
-        delete[] elements_array;
+        IDestroyObject(elements_array);
         return list_node;
     };
 

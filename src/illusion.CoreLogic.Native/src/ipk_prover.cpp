@@ -2,7 +2,7 @@
 #include <queue>
 #include <vector>
 
-API_EXPORT IPK_RESULT IPK_VerifyProof(IPK_Context_Handle context, IPK_ProofDAG_Handle proof_dag, bool* out_is_valid) {
+IAPI_EXPORT IPK_RESULT IPK_VerifyProof(IPK_Context_Handle context, IPK_ProofDAG_Handle proof_dag, bool* out_is_valid) {
 	if (!context || !proof_dag || !out_is_valid) {
 		return IPK_ERROR_NULL_POINTER;
 	}
@@ -29,10 +29,10 @@ API_EXPORT IPK_RESULT IPK_VerifyProof(IPK_Context_Handle context, IPK_ProofDAG_H
 	}
 	return IPK_ERROR;
 }
-API_EXPORT void IPK_FreeProofDAG(IPK_ProofDAG_Handle proof_dag) {
+IAPI_EXPORT void IPK_FreeProofDAG(IPK_ProofDAG_Handle proof_dag) {
 	if (!proof_dag) {
 		return;
 	}
 	free(proof_dag->nodes);
-	DestroyObject(proof_dag);
+	IDestroyObject(proof_dag);
 }

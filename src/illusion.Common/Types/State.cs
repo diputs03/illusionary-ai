@@ -7,8 +7,8 @@ namespace illusion.Common.Types;
 public sealed class State
 {
     private readonly Dictionary<string, Object> _objects;
-    private readonly HashSet<Expression> _facts;
-    private readonly List<Expression> _verifiedConclusions;
+    private readonly HashSet<Predicate> _facts;
+    private readonly List<Predicate> _verifiedConclusions;
 
     public enum StatePhase
     {
@@ -20,19 +20,19 @@ public sealed class State
 
     public StatePhase Phase { get; private set; }
     public IReadOnlyDictionary<string, Object> Objects => _objects.AsReadOnly();
-    public IReadOnlyList<Expression> Axioms { get; }
-    public IReadOnlyList<Expression> VerifiedConclusions => _verifiedConclusions.AsReadOnly();
+    public IReadOnlyList<Predicate> Axioms { get; }
+    public IReadOnlyList<Predicate> VerifiedConclusions => _verifiedConclusions.AsReadOnly();
     public DateTime CreatedAt { get; }
     public DateTime? UpdatedAt { get; private set; }
 
-    public State(IEnumerable<Expression> axioms)
+    public State(IEnumerable<Predicate> axioms)
     {
         var axiomList = axioms?.ToList() ?? throw new IAException<ArgumentNullException>(nameof(axioms));
 
         Phase = StatePhase.Initial;
         Axioms = axiomList.AsReadOnly();
-        _verifiedConclusions = new List<Expression>();
-        _facts = new HashSet<Expression>(axiomList);
+        _verifiedConclusions = new List<Predicate>();
+        _facts = new HashSet<Predicate>(axiomList);
         _objects = axiomList
             .Select(a => a.TargetObject)
             .GroupBy(o => o.Id, StringComparer.Ordinal)
@@ -40,7 +40,7 @@ public sealed class State
         CreatedAt = DateTime.UtcNow;
     }
 
-    public bool ContainsFact(Expression expression)
+    public bool ContainsFact(Predicate expression)
     {
         if (expression is null)
             throw new IAException<ArgumentNullException>(nameof(expression));
@@ -51,7 +51,7 @@ public sealed class State
     /// <summary>
     /// Adds a verified conclusion exactly once and indexes its target object.
     /// </summary>
-    public void AddVerifiedConclusion(Expression conclusion)
+    public void AddVerifiedConclusion(Predicate conclusion)
     {
         if (conclusion is null)
             throw new IAException<ArgumentNullException>(nameof(conclusion));

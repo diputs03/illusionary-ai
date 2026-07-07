@@ -24,8 +24,6 @@ public sealed class Object : IEquatable<Object>
         && StringComparer.Ordinal.Equals(Id, other.Id)
         && StringComparer.Ordinal.Equals(Name, other.Name);
 
-    public override bool Equals(object? obj) => Equals(obj as Object);
-
     public override int GetHashCode() => HashCode.Combine(
         StringComparer.Ordinal.GetHashCode(Id),
         StringComparer.Ordinal.GetHashCode(Name));

@@ -1,3 +1,5 @@
+using illusion.CoreLogic.IPK_Adapter;
+using illusion.Common.Utils;
 using System.Security.Cryptography;
 using System.Text;
 
@@ -10,11 +12,14 @@ namespace illusion.CoreLogic.Graph.Algorithms;
 public static class GraphMatcher
 {
     #region Tree Isomorphism (AHU Algorithm)
-
     /// <summary>
-    /// Check if two rooted trees are isomorphic
-    /// Using AHU (Aho-Hopcroft-Ullman) algorithm with canonical hashing
+    /// Tree isomorphism check for rooted trees using canonical labeling (AHU algorithm)
     /// </summary>
+    /// <param name="g1"></param>
+    /// <param name="root1"></param>
+    /// <param name="g2"></param>
+    /// <param name="root2"></param>
+    /// <returns></returns>
     public static bool AreRootedTreesIsomorphic(
         KnowledgeGraph g1, string root1,
         KnowledgeGraph g2, string root2)
@@ -23,18 +28,25 @@ public static class GraphMatcher
         var hash2 = ComputeTreeCanonicalHash(g2, root2);
         return hash1 == hash2;
     }
-
     /// <summary>
-    /// Compute canonical hash for rooted tree (deterministic, isomorphism-invariant)
-    /// Two trees are isomorphic iff they have the same canonical hash
+    /// Compute canonical hash for a rooted tree using post-order traversal and hashing
     /// </summary>
+    /// <param name="graph"></param>
+    /// <param name="root"></param>
+    /// <returns></returns>
     public static string ComputeTreeCanonicalHash(KnowledgeGraph graph, string root)
     {
         var labelMap = new Dictionary<string, string>();
         ComputeHashRecursive(graph, root, new HashSet<string>(), labelMap);
         return labelMap[root];
     }
-
+    /// <summary>
+    /// Hash computation for a node in the tree, recursively computing children's hashes first (post-order)
+    /// </summary>
+    /// <param name="graph"></param>
+    /// <param name="node"></param>
+    /// <param name="visited"></param>
+    /// <param name="labelMap"></param>
     private static void ComputeHashRecursive(
         KnowledgeGraph graph,
         string node,
@@ -44,8 +56,9 @@ public static class GraphMatcher
         if (visited.Contains(node)) return;
         visited.Add(node);
 
-        var children = graph.GetNeighbors(node)
-            .Where(n => !visited.Contains(n))
+        var children = graph.Edge[node]
+            .Where(n => !visited.Contains(n.Value.Id))
+            .Select(n => n.Value.Id)
             .ToList();
 
         // Recursively compute children first (post-order)
@@ -56,51 +69,58 @@ public static class GraphMatcher
         var childLabels = children.Select(c => labelMap[c]).OrderBy(l => l).ToList();
 
         // Compute canonical label: nodeType + sorted(childLabels)
-        var nodeObj = graph.GetNode(node);
-        var nodeType = nodeObj?.Type.ToString() ?? "Unknown";
+        var nodeType = graph.Node[node].GetType()?.ToString() ?? "Unknown";
 
         var canonical = $"{nodeType}({string.Join(",", childLabels)})";
-        labelMap[node] = Sha256Hash(canonical);
+        labelMap[node] = Convert.ToBase64String(CryptoUtils.ComputeSha256(Encoding.UTF8.GetBytes(canonical)));
     }
 
     #endregion
 
     #region Subgraph Isomorphism (Ullmann's Algorithm)
-
     /// <summary>
-    /// Find all occurrences of pattern graph within target graph
-    /// Uses Ullmann's algorithm for subgraph isomorphism
-    /// Critical for rule matching: find where inference rules apply
+    /// Subgraph isomorphism check using backtracking (Ullmann's algorithm)
     /// </summary>
+    /// <param name="pattern"></param>
+    /// <param name="target"></param>
+    /// <returns></returns>
     public static List<Dictionary<string, string>> FindSubgraphIsomorphisms(
         KnowledgeGraph pattern,
         KnowledgeGraph target)
     {
-        var results = new List<Dictionary<string, string>>();
-        var patternNodes = pattern.Nodes.Select(n => n.Id).ToList();
-        var targetNodes = target.Nodes.Select(n => n.Id).ToList();
+        var patternNodes = pattern.Node.Values.ToList();
+        var targetNodes = target.Node.Values.ToList();
 
         // Initial candidate mapping: pattern node -> compatible target nodes
-        var candidates = new Dictionary<string, List<string>>();
+        var candidates = new Dictionary<string, List<Node>>();
         foreach (var pNode in patternNodes)
         {
-            var pType = pattern.GetNode(pNode)?.Type;
-            candidates[pNode] = targetNodes
-                .Where(t => target.GetNode(t)?.Type == pType)
+            candidates[pNode.Id] = targetNodes
+                .Where(t => target.Node[t.Id]?.GetType() == pattern.Node[pNode.Id]?.GetType())
                 .ToList();
         }
 
+        var results = new List<Dictionary<string, string>>();
         var mapping = new Dictionary<string, string>();
         BacktrackMatch(0, patternNodes, pattern, target, candidates, mapping, results);
         return results;
     }
-
+    /// <summary>
+    /// Backtracking search for subgraph isomorphism
+    /// </summary>
+    /// <param name="depth"></param>
+    /// <param name="patternNodes"></param>
+    /// <param name="pattern"></param>
+    /// <param name="target"></param>
+    /// <param name="candidates"></param>
+    /// <param name="mapping"></param>
+    /// <param name="results"></param>
     private static void BacktrackMatch(
         int depth,
-        List<string> patternNodes,
+        List<Node> patternNodes,
         KnowledgeGraph pattern,
         KnowledgeGraph target,
-        Dictionary<string, List<string>> candidates,
+        Dictionary<string, List<Node>> candidates,
         Dictionary<string, string> mapping,
         List<Dictionary<string, string>> results)
     {
@@ -113,21 +133,28 @@ public static class GraphMatcher
         }
 
         var pNode = patternNodes[depth];
-        foreach (var tNode in candidates[pNode])
+        foreach (var tNode in candidates[pNode.Id])
         {
-            if (mapping.Values.Contains(tNode))
+            if (mapping.Values.Contains(tNode.Id))
                 continue; // Already mapped
 
-            mapping[pNode] = tNode;
+            mapping[pNode.Id] = tNode.Id;
 
             // Prune: check partial mapping consistency
             if (IsPartialMappingValid(pattern, target, mapping, depth))
                 BacktrackMatch(depth + 1, patternNodes, pattern, target, candidates, mapping, results);
 
-            mapping.Remove(pNode);
+            mapping.Remove(pNode.Id);
         }
     }
-
+    /// <summary>
+    /// Check if the current partial mapping is consistent with the edges in the pattern and target graphs
+    /// </summary>
+    /// <param name="pattern"></param>
+    /// <param name="target"></param>
+    /// <param name="mapping"></param>
+    /// <param name="depth"></param>
+    /// <returns></returns>
     private static bool IsPartialMappingValid(
         KnowledgeGraph pattern,
         KnowledgeGraph target,
@@ -138,10 +165,11 @@ public static class GraphMatcher
         var mapped = mapping.Keys.ToList();
         foreach (var from in mapped)
         {
+
             foreach (var to in mapped)
             {
-                var hasPatternEdge = pattern.GetOutEdges(from).Any(e => e.ToId == to);
-                var hasTargetEdge = target.GetOutEdges(mapping[from]).Any(e => e.ToId == mapping[to]);
+                var hasPatternEdge = pattern.Edge[from].Any(e => e.Value.Id == to);
+                var hasTargetEdge = target.Edge[mapping[from]].Any(e => e.Value.Id == mapping[to]);
 
                 if (hasPatternEdge != hasTargetEdge)
                     return false;
@@ -156,12 +184,12 @@ public static class GraphMatcher
         Dictionary<string, string> mapping)
     {
         // Verify every edge in pattern exists in target
-        foreach (var pNode in pattern.Nodes.Select(n => n.Id))
+        foreach (var pNode in pattern.Node.Values.Select(n => n.Id))
         {
-            foreach (var edge in pattern.GetOutEdges(pNode))
+            foreach (var edge in pattern.Edge[pNode])
             {
-                var hasTargetEdge = target.GetOutEdges(mapping[pNode])
-                    .Any(e => e.ToId == mapping[edge.ToId] && e.Type == edge.Type);
+                var hasTargetEdge = target.Edge[mapping[pNode]]
+                    .Any(e => e.Key.Id == mapping[edge.Key.Id] && e.GetType() == edge.GetType());
 
                 if (!hasTargetEdge)
                     return false;
@@ -169,74 +197,17 @@ public static class GraphMatcher
         }
         return true;
     }
-
-    #endregion
-
-    #region Rule Pattern Matching
-
-    /// <summary>
-    /// Find all places where an inference rule can be applied
-    /// Pattern: A → B (implication edge)
-    /// Returns all (A, B) pairs where rule matches
-    /// </summary>
-    public static List<(string Premise, string Conclusion)> FindRuleApplications(
-        KnowledgeGraph graph,
-        string rulePatternNode)
-    {
-        var results = new List<(string, string)>();
-
-        // Find all implication edges matching the rule pattern
-        foreach (var node in graph.Nodes)
-        {
-            foreach (var edge in graph.GetOutEdges(node.Id)
-                .Where(e => e.Type == "Implies"))
-            {
-                results.Add((node.Id, edge.ToId));
-            }
-        }
-        return results;
-    }
-
-    /// <summary>
-    /// Find all modus ponens opportunities
-    /// Pattern: We have A, and A→B, therefore we can derive B
-    /// Returns all derivable conclusions with their proof paths
-    /// </summary>
-    public static List<ModusPensMatch> FindModusPonensOpportunities(KnowledgeGraph graph)
-    {
-        var results = new List<ModusPensMatch>();
-        var existingFacts = new HashSet<string>(graph.Nodes
-            .Where(n => n.Type is "Predicate" or "Axiom")
-            .Select(n => n.Id));
-
-        foreach (var fact in existingFacts)
-        {
-            foreach (var edge in graph.GetOutEdges(fact)
-                .Where(e => e.Type == "Implies"))
-            {
-                var conclusion = edge.ToId;
-                if (!existingFacts.Contains(conclusion))
-                {
-                    results.Add(new ModusPensMatch
-                    {
-                        Premise = fact,
-                        Conclusion = conclusion,
-                        ProofPath = new List<string> { fact, conclusion }
-                    });
-                }
-            }
-        }
-        return results;
-    }
-
     #endregion
 
     #region Common Subtree Extraction
-
     /// <summary>
-    /// Find maximum common subtree between two graphs
-    /// Useful for proof analogy: find similar proof structures
+    /// Find the maximum common subtree between two rooted trees (not necessarily isomorphic)
     /// </summary>
+    /// <param name="g1"></param>
+    /// <param name="root1"></param>
+    /// <param name="g2"></param>
+    /// <param name="root2"></param>
+    /// <returns></returns>
     public static List<string> FindMaximumCommonSubtree(
         KnowledgeGraph g1, string root1,
         KnowledgeGraph g2, string root2)
@@ -256,9 +227,7 @@ public static class GraphMatcher
                 continue;
 
             // Check if nodes are compatible
-            var type1 = g1.GetNode(n1)?.Type;
-            var type2 = g2.GetNode(n2)?.Type;
-            if (type1 != type2)
+            if (g1.Node[n1]?.GetType() != g2.Node[n2]?.GetType())
                 continue;
 
             visited1.Add(n1);
@@ -266,43 +235,22 @@ public static class GraphMatcher
             common.Add(n1);
 
             // Match children by degree
-            var children1 = g1.GetNeighbors(n1).Where(c => !visited1.Contains(c)).ToList();
-            var children2 = g2.GetNeighbors(n2).Where(c => !visited2.Contains(c)).ToList();
+            var children1 = g1.Edge[n1].Where(c => !visited1.Contains(c.Value.Id)).ToList();
+            var children2 = g2.Edge[n2].Where(c => !visited2.Contains(c.Value.Id)).ToList();
 
             // Greedy matching by type
             foreach (var c1 in children1)
             {
-                var c1Type = g1.GetNode(c1)?.Type;
+                var c1Type = g1.Node[c1.Value.Id]?.GetType();
                 var match = children2.FirstOrDefault(c2 =>
-                    g2.GetNode(c2)?.Type == c1Type && !visited2.Contains(c2));
+                    g2.Node[c2.Value.Id]?.GetType() == c1Type && !visited2.Contains(c2.Value.Id));
 
                 if (match != null)
-                    queue.Enqueue((c1, match));
+                    queue.Enqueue((c1.Value.Id, match.Value.Id));
             }
         }
         return common;
     }
 
     #endregion
-
-    #region Helpers
-
-    private static string Sha256Hash(string input)
-    {
-        var bytes = SHA256.HashData(Encoding.UTF8.GetBytes(input));
-        return Convert.ToBase64String(bytes).Substring(0, 16);
-    }
-
-    #endregion
-}
-
-/// <summary>
-/// Result of modus ponens pattern matching
-/// </summary>
-public class ModusPensMatch
-{
-    public string Premise { get; set; } = "";
-    public string Conclusion { get; set; } = "";
-    public List<string> ProofPath { get; set; } = new();
-    public string RuleName { get; set; } = "";
 }

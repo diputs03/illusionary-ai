@@ -6,24 +6,17 @@ MinimumVisualStudioVersion = 10.0.40219.1
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Solution Items", "Solution Items", "{8EC462FD-D22E-90A8-E5CE-7E832BA40C5D}"
 	ProjectSection(SolutionItems) = preProject
 		Directory.Build.props = Directory.Build.props
+		config\default.yaml = config\default.yaml
+		config\config.yaml = config\config.yaml
 		Directory.Build.targets = Directory.Build.targets
 		Directory.Packages.props = Directory.Packages.props
-		config\ggtp.yaml = config\ggtp.yaml
-		config\system.yaml = config\system.yaml
-		config\upp.yaml = config\upp.yaml
 	EndProjectSection
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "src", "src", "{FF701CE9-4871-4211-814A-3BBB5C819AB8}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "illusion.Common", "src\illusion.Common\illusion.Common.csproj", "{1054C9D5-4F2A-443C-BE80-EAFAE6271835}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "illusion.Common.Tests", "tests\csharp-unit\illusion.Common.Tests\illusion.Common.Tests.csproj", "{273B13E4-6B69-402E-BD8F-327424582E25}"
-EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "illusion.CoreLogic", "src\illusion.CoreLogic\illusion.CoreLogic.csproj", "{CC5B1D38-2905-4190-958D-39C9228A4D34}"
-EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "illusion.CoreLogic.Tests", "tests\csharp-unit\illusion.CoreLogic.Tests\illusion.CoreLogic.Tests.csproj", "{75759AB0-A238-4375-AC00-D9CF0E1BBCA8}"
-EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "illusion.Gateway.CLI", "src\illusion.Gateway.CLI\illusion.Gateway.CLI.csproj", "{7F451618-80B7-4926-B3CD-E628FD37E2AA}"
-EndProject
-Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "src", "src", "{FF701CE9-4871-4211-814A-3BBB5C819AB8}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "illusion.Memory", "src\illusion.Memory\illusion.Memory.csproj", "{D439F162-629B-45DD-A1C2-DCE0507131B7}"
 EndProject
@@ -35,9 +28,15 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "illusion.Meta", "src\illusi
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "illusion.Gateway", "src\illusion.Gateway\illusion.Gateway.csproj", "{184AD754-DE24-447B-AA80-D9976CDD28D1}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "illusion.Gateway.CLI", "src\illusion.Gateway.CLI\illusion.Gateway.CLI.csproj", "{7F451618-80B7-4926-B3CD-E628FD37E2AA}"
+EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "tests", "tests", "{A76F83AF-A61A-408F-8BB2-4FFDF1BDD8DD}"
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "csharp-unit", "csharp-unit", "{F9BD5DFA-1758-40AD-AEB9-AC09CDE8D3BF}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "illusion.Common.Tests", "tests\csharp-unit\illusion.Common.Tests\illusion.Common.Tests.csproj", "{273B13E4-6B69-402E-BD8F-327424582E25}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "illusion.CoreLogic.Tests", "tests\csharp-unit\illusion.CoreLogic.Tests\illusion.CoreLogic.Tests.csproj", "{75759AB0-A238-4375-AC00-D9CF0E1BBCA8}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "illusion.Memory.Tests", "tests\csharp-unit\illusion.Memory.Tests\illusion.Memory.Tests.csproj", "{82CD365D-FB29-4B41-BE0D-DE8D7A1D4541}"
 EndProject

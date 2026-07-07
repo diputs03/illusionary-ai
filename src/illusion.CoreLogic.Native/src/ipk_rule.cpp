@@ -1,29 +1,29 @@
 #include "ipk_rule.h"
 #include "ipk_unification.h"
 
-API_EXPORT IPK_RESULT IPK_Rule_Create(IPK_String name, size_t premise_count,
+IAPI_EXPORT IPK_RESULT IPK_Rule_Create(IPK_String name, size_t premise_count,
 	IPK_AST_Handle* premises, IPK_AST_Handle conclusion, IPK_Rule_Handle* out_rule) {
 	if (!name || !out_rule || !conclusion || (!premises && premise_count > 0)) {
 		return IPK_ERROR_INVALID_ARGUMENT;
 	}
 
-	IPK_Rule_Handle rule = NewObject<IPK_Rule>();
+	IPK_Rule_Handle rule = INewObject<IPK_Rule>();
 	if (!rule) {
 		return IPK_ERROR_OUT_OF_MEMORY;
 	}
 
-	rule->name = ipk_strdup(name);
+	rule->name = istrdup(name);
 	if (!rule->name) {
-		DestroyObject(rule);
+		IDestroyObject(rule);
 		return IPK_ERROR_OUT_OF_MEMORY;
 	}
 	
 	rule->premise_count = premise_count;
 	if (premise_count > 0) {
-		rule->premises = NewObject<IPK_AST_Handle>(premise_count);
+		rule->premises = INewObject<IPK_AST_Handle>(premise_count);
 		if (!rule->premises) {
-			free(rule->name);
-			DestroyObject(rule);
+			delete[] rule->name;
+			IDestroyObject(rule);
 			return IPK_ERROR_OUT_OF_MEMORY;
 		}
 		for (size_t i = 0; i < premise_count; i++) {
@@ -32,9 +32,9 @@ API_EXPORT IPK_RESULT IPK_Rule_Create(IPK_String name, size_t premise_count,
 				for (size_t j = 0; j < i; j++) {
 					IPK_AST_Destroy(rule->premises[j]);
 				}
-				DestroyObject(rule->premises);
-				free(rule->name);
-				DestroyObject(rule);
+				IDestroyObject(rule->premises);
+				delete[] rule->name;
+				IDestroyObject(rule);
 				return IPK_ERROR_OUT_OF_MEMORY;
 			}
 		}
@@ -46,15 +46,15 @@ API_EXPORT IPK_RESULT IPK_Rule_Create(IPK_String name, size_t premise_count,
 		for (size_t j = 0; j < premise_count; j++) {
 			IPK_AST_Destroy(rule->premises[j]);
 		}
-		DestroyObject(rule->premises);
-		free(rule->name);
-		DestroyObject(rule);
+		IDestroyObject(rule->premises);
+		delete[] rule->name;
+		IDestroyObject(rule);
 		return res;
 	}
 	return IPK_SUCCESS;
 }
 
-API_EXPORT IPK_RESULT IPK_Rule_Apply(IPK_Rule_Handle rule, IPK_AST_Handle* premise_ins, IPK_AST_Handle* out_ins) {
+IAPI_EXPORT IPK_RESULT IPK_Rule_Apply(IPK_Rule_Handle rule, IPK_AST_Handle* premise_ins, IPK_AST_Handle* out_ins) {
 	if (!rule || !premise_ins || !out_ins) {
 		return IPK_ERROR_NULL_POINTER;
 	}
@@ -75,15 +75,15 @@ API_EXPORT IPK_RESULT IPK_Rule_Apply(IPK_Rule_Handle rule, IPK_AST_Handle* premi
 	return res;
 }
 
-API_EXPORT void IPK_Rule_Destroy(IPK_Rule_Handle rule) {
+IAPI_EXPORT void IPK_Rule_Destroy(IPK_Rule_Handle rule) {
 	if (!rule) {
 		return;
 	}
-	free(rule->name);
+	delete[] rule->name;
 	for (size_t i = 0; i < rule->premise_count; i++) {
 		IPK_AST_Destroy(rule->premises[i]);
 	}
-	DestroyObject(rule->premises);
+	IDestroyObject(rule->premises);
 	IPK_AST_Destroy(rule->conclusion);
-	DestroyObject(rule);
+	IDestroyObject(rule);
 }

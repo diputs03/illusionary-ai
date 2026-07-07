@@ -11,7 +11,7 @@
 extern "C" {
 #endif
 
-    API_EXPORT IPK_RESULT IPK_ParseStatement(IPK_String s_expression, IPK_AST_Handle* out_ast);
+    IAPI_EXPORT IPK_RESULT IPK_ParseStatement(IPK_String s_expression, IPK_AST_Handle* out_ast);
 
 #ifdef __cplusplus
 }

@@ -4,40 +4,40 @@
 #include <functional>
 #include "ipk_ast.h"
 
-API_EXPORT IPK_RESULT IPK_AST_CreateSymbol(IPK_String name, IPK_AST_Handle* out_ast) {
+IAPI_EXPORT IPK_RESULT IPK_AST_CreateSymbol(IPK_String name, IPK_AST_Handle* out_ast) {
     if (!name || !out_ast) {
         return IPK_ERROR_INVALID_ARGUMENT;
     }
     
-    IPK_AST_Handle node = NewObject<IPK_AST_Node>();
+    IPK_AST_Handle node = INewObject<IPK_AST_Node>();
     if (!node) {
         return IPK_ERROR_OUT_OF_MEMORY;
     }
 
     node->type = IPK_AST_NODE_SYMBOL;
-    node->data.symbol = ipk_strdup(name);
+    node->data.symbol = INewObject<IPK_Char, false>(istrlen(name), name);
 
     if (!node->data.symbol) {
-        DestroyObject(node);
+        IDestroyObject(node);
         return IPK_ERROR_OUT_OF_MEMORY;
     }
     *out_ast = node;
     return IPK_SUCCESS;
 }
 
-API_EXPORT IPK_RESULT IPK_AST_CreateList(size_t length, IPK_AST_Handle* elements, IPK_AST_Handle* out_ast) {
+IAPI_EXPORT IPK_RESULT IPK_AST_CreateList(size_t length, IPK_AST_Handle* elements, IPK_AST_Handle* out_ast) {
     if ((length > 0 && !elements) || !out_ast) {
         return IPK_ERROR_INVALID_ARGUMENT;
     }
 
-    IPK_AST_Handle node = NewObject<IPK_AST_Node>();
+    IPK_AST_Handle node = INewObject<IPK_AST_Node>();
     if (!node) {
         return IPK_ERROR_OUT_OF_MEMORY;
     }
 
-    node->data.list.elements = NewObject<IPK_AST_Handle>(length);
+    node->data.list.elements = INewObject<IPK_AST_Handle>(length);
     if (!node->data.list.elements) {
-        DestroyObject(node);
+        IDestroyObject(node);
         return IPK_ERROR_OUT_OF_MEMORY;
     }
 
@@ -49,8 +49,8 @@ API_EXPORT IPK_RESULT IPK_AST_CreateList(size_t length, IPK_AST_Handle* elements
             for (size_t j = 0; j < i; j++) {
                 IPK_AST_Destroy(node->data.list.elements[j]);
             }
-            DestroyObject(node->data.list.elements);
-            DestroyObject(node);
+            IDestroyObject(node->data.list.elements);
+            IDestroyObject(node);
             return res;
         }
     }
@@ -59,7 +59,7 @@ API_EXPORT IPK_RESULT IPK_AST_CreateList(size_t length, IPK_AST_Handle* elements
     return IPK_SUCCESS;
 }
 
-API_EXPORT IPK_RESULT IPK_AST_GetType(IPK_AST_Handle ast, IPK_AST_NodeType* out_type) {
+IAPI_EXPORT IPK_RESULT IPK_AST_GetType(IPK_AST_Handle ast, IPK_AST_NodeType* out_type) {
     if (!ast || !out_type) {
 		return IPK_ERROR_INVALID_ARGUMENT;
     }
@@ -67,7 +67,7 @@ API_EXPORT IPK_RESULT IPK_AST_GetType(IPK_AST_Handle ast, IPK_AST_NodeType* out_
     return IPK_SUCCESS;
 }
 
-API_EXPORT IPK_RESULT IPK_AST_GetSymbol(IPK_AST_Handle ast, IPK_String* out_name) {
+IAPI_EXPORT IPK_RESULT IPK_AST_GetSymbol(IPK_AST_Handle ast, IPK_String* out_name) {
     if (!ast || !out_name) {
         return IPK_ERROR_INVALID_ARGUMENT;
 	}
@@ -78,7 +78,7 @@ API_EXPORT IPK_RESULT IPK_AST_GetSymbol(IPK_AST_Handle ast, IPK_String* out_name
     return IPK_SUCCESS;
 }
 
-API_EXPORT IPK_RESULT IPK_AST_GetList(IPK_AST_Handle ast, size_t index, IPK_AST_Handle* out_element) {
+IAPI_EXPORT IPK_RESULT IPK_AST_GetList(IPK_AST_Handle ast, size_t index, IPK_AST_Handle* out_element) {
     if (!ast || !out_element) {
         return IPK_ERROR_INVALID_ARGUMENT;
     }
@@ -92,7 +92,7 @@ API_EXPORT IPK_RESULT IPK_AST_GetList(IPK_AST_Handle ast, size_t index, IPK_AST_
     return IPK_SUCCESS;
 }
 
-API_EXPORT IPK_RESULT IPK_AST_Clone(IPK_AST_Handle ast, IPK_AST_Handle* out_ast) {
+IAPI_EXPORT IPK_RESULT IPK_AST_Clone(IPK_AST_Handle ast, IPK_AST_Handle* out_ast) {
     if (!ast || !out_ast) {
         return IPK_ERROR_INVALID_ARGUMENT;
     }
@@ -101,7 +101,7 @@ API_EXPORT IPK_RESULT IPK_AST_Clone(IPK_AST_Handle ast, IPK_AST_Handle* out_ast)
         return IPK_AST_CreateSymbol(ast->data.symbol, out_ast);
     }
 
-    IPK_AST_Handle node = NewObject<IPK_AST_Node>();
+    IPK_AST_Handle node = INewObject<IPK_AST_Node>();
     if (!node) {
         return IPK_ERROR_OUT_OF_MEMORY;
     }
@@ -111,9 +111,9 @@ API_EXPORT IPK_RESULT IPK_AST_Clone(IPK_AST_Handle ast, IPK_AST_Handle* out_ast)
     node->data.list.elements = nullptr;
 
     if (node->data.list.length > 0) {
-        node->data.list.elements = NewObject<IPK_AST_Handle>(node->data.list.length);
+        node->data.list.elements = INewObject<IPK_AST_Handle>(node->data.list.length);
         if (!node->data.list.elements) {
-            DestroyObject(node);
+            IDestroyObject(node);
             return IPK_ERROR_OUT_OF_MEMORY;
         }
 
@@ -123,8 +123,8 @@ API_EXPORT IPK_RESULT IPK_AST_Clone(IPK_AST_Handle ast, IPK_AST_Handle* out_ast)
                 for (size_t j = 0; j < i; j++) {
                     IPK_AST_Destroy(node->data.list.elements[j]);
                 }
-                DestroyObject(node->data.list.elements);
-                DestroyObject(node);
+                IDestroyObject(node->data.list.elements);
+                IDestroyObject(node);
                 return res;
             }
         }
@@ -134,7 +134,7 @@ API_EXPORT IPK_RESULT IPK_AST_Clone(IPK_AST_Handle ast, IPK_AST_Handle* out_ast)
     return IPK_SUCCESS;
 }
 
-API_EXPORT bool IPK_AST_Equal(IPK_AST_Handle a, IPK_AST_Handle b) {
+IAPI_EXPORT bool IPK_AST_Equal(IPK_AST_Handle a, IPK_AST_Handle b) {
     if (!a && !b) {
         return true;
     }
@@ -146,7 +146,7 @@ API_EXPORT bool IPK_AST_Equal(IPK_AST_Handle a, IPK_AST_Handle b) {
     }
 
     IPK_AST_SwitchNodeType(a->type, {
-        return ipk_strcmp(a->data.symbol, b->data.symbol) == 0;
+        return istrcmp(a->data.symbol, b->data.symbol) == 0;
     }, {
         if (a->data.list.length != b->data.list.length) {
             return false;
@@ -160,29 +160,29 @@ API_EXPORT bool IPK_AST_Equal(IPK_AST_Handle a, IPK_AST_Handle b) {
     });
 }
 
-API_EXPORT void IPK_AST_Destroy(IPK_AST_Handle ast) {
+IAPI_EXPORT void IPK_AST_Destroy(IPK_AST_Handle ast) {
     if (!ast) {
         return;
     }
     IPK_AST_SwitchNodeType(ast->type, {
-        free(ast->data.symbol);
-        DestroyObject(ast);
+        IDestroyObject(ast->data.symbol);
+        IDestroyObject(ast);
     }, {
         for (size_t i = 0; i < ast->data.list.length; i++) {
             IPK_AST_Destroy(ast->data.list.elements[i]);
         }
-        DestroyObject(ast->data.list.elements);
-        DestroyObject(ast);
+        IDestroyObject(ast->data.list.elements);
+        IDestroyObject(ast);
         return;
     });
 }
 
-API_EXPORT IPK_RESULT IPK_AST_ToString(IPK_AST_Handle ast, IPK_String* out_str) {
+IAPI_EXPORT IPK_RESULT IPK_AST_ToString(IPK_AST_Handle ast, IPK_String* out_str) {
     if (!out_str) {
         return IPK_ERROR_NULL_POINTER;
     }
 
-    std::ostringstream oss{};
+    std::iostringstream oss{};
 
     std::function<void(IPK_AST_Handle, size_t)> IPK_MakeString;
     IPK_MakeString = [&](IPK_AST_Handle ast, size_t indent) -> void {
@@ -193,15 +193,16 @@ API_EXPORT IPK_RESULT IPK_AST_ToString(IPK_AST_Handle ast, IPK_String* out_str) 
             oss << "  ";
         }
         IPK_AST_SwitchNodeType(ast->type, {
-            oss << TEXT("Symbol: ") << ast->data.symbol << TEXT('\n');
+            oss << ITEXT("Symbol: ") << ast->data.symbol << ITEXT('\n');
             }, {
-                oss << TEXT("List: length=") << ast->data.list.length << TEXT('\n');
+                oss << ITEXT("List: length=") << ast->data.list.length << ITEXT('\n');
                 for (size_t i = 0; i < ast->data.list.length; i++) {
                     IPK_MakeString(ast->data.list.elements[i], indent + 1);
                 }
             });
         };
     IPK_MakeString(ast, 0);
-    *out_str = ipk_strdup(oss.str().c_str());
+    std::istring str = oss.str();
+    *out_str = INewObject<IPK_Char, false>(str.length(), oss.str().c_str());
     return IPK_SUCCESS;
 }
