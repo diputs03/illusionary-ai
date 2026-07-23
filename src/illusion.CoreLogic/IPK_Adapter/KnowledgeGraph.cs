@@ -1,6 +1,5 @@
 using illusion.Common.Types;
 using illusion.CoreLogic.Graph;
-using illusion.CoreLogic.Prover;
 using System.Text.Json.Nodes;
 using System.Collections.Frozen;
 using System.Text;

@@ -13,10 +13,12 @@ upp:
     encryption_enabled: true
     auto_backup: true
     backup_dir: "./upp_backup"
-    default_namespace: "upp://default/"
+    namespace: "upp://default/"
+    storage_extention: ".upp"
 ggtp:
     server_url: "https//ggtp.illusionary-ai.org"
     timeout_seconds: 30
     auto_sync: true
     signature_verfy: true
     cache_dir: "./ggtp_modules"
+    namespace: "ggtp://default/"

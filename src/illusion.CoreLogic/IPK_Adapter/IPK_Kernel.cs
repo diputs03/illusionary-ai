@@ -2,7 +2,6 @@
 using System.Diagnostics;
 using illusion.Common.Types;
 using illusion.Common.Utils;
-using illusion.CoreLogic.Prover;
 using System.Text.Json;
 using illusion.CoreLogic.Kernel;
 
